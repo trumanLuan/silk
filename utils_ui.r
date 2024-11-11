@@ -67,6 +67,7 @@ rm_outliers_from_df <- function(df, cols){
 ##* UI Tabs
 ##* *************************
 
+
 ##* **********
 tab_quickStart <- tabItem(
   tabName = "quickStart",

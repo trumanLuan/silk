@@ -1,4 +1,4 @@
-# app.R 
+ # app.R 
 
 source("libraries.r")
 source("utils_ui.r")
@@ -10,7 +10,7 @@ source("utilis_server_function.r")
 
 # Set up UI components
 ## header
-header <- dashboardHeader(title = "SILK: scRNA-seq Interactive anaLysis Kit", 
+header <- dashboardHeader(title = "SILK: scRNA-seq Interactive anaLysis toolKit", 
                           titleWidth = 400, 
                           disable = FALSE,
                           header_search,

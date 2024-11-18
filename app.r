@@ -610,6 +610,7 @@ observeEvent(input$show_function_table,{
       
       data.now.results <- NULL
       for(cluster.i in uniq.cluster){
+        cat(cluster.i,'\n')
         cluster.genes <- subset(data.now, cluster == cluster.i)
         cluster.enrich <- enrichr_gsa_all_subcat(genes=cluster.genes$gene, species= "Homo sapiens", all_subcat = TRUE)
         data.now.results <- rbind(data.now.results, 

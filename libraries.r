@@ -26,6 +26,8 @@ library(scDblFinder)
 library(scds) # for predicting doublets
 library(SingleR)
 library(celldex)
+library(AUCell) # cell type annotatino
+
 library(CellChat) # infer cell-cell communication
 library(liana) # infer cell-cell interaction
 

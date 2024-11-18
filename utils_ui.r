@@ -462,9 +462,89 @@ tab_find_marker <- tabItem(
 tab_annotatecell <- tabItem(
   tabName = "annotatecell",
   h2("Cell Type Annotation"),
-  p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
+  p("Prediction, viewer and exploration of cell type identity in automatic and manual way."),
   # 添加具体的UI元素，如图表和表格
-  # plotlyOutput("clusterAnalysisPlot")
+  # 
+  tabBox(title = "", width = 12,
+         
+         tabPanel("Input", 
+                  
+                  fluidRow(
+                    column(6, 
+                           tags$div(
+                             tags$p(style = "font-size: 18px; font-weight: bold; text-decoration: underline;", "Select Files"),
+                           ),
+                           br(),
+                           
+                           h4("1.Select data files:"),
+                           shinyDirButton(id = "load_10x_select_folder", label = "Select Folder", "Select Folder:"),
+                           verbatimTextOutput("load_10x_selected_folder"),
+                           # verbatimTextOutput("load_10x_selected_folder_content"),
+                           
+                           h4("2.Sample metatable (optional):"),
+                           shinyFilesButton(id = 'load_10x_select_samplemeta', label = "Select File", "Select File:", multiple = FALSE),
+                           verbatimTextOutput("load_10x_selected_samplemeta"),
+                           
+                           h4("3.Define project directory:"),
+                           shinyDirButton(id = 'load_10x_define_output_dir', label = "Select Folder", "Select Folder:", multiple = FALSE),
+                           verbatimTextOutput("load_10x_selected_output_dir"),
+                           
+                           br(),
+                           shinyjs::useShinyjs(),
+                           actionButton("load_10x_submit", "Submit", class = "btn-danger")
+                           
+                    ) # left-column end
+                  )
+         ),
+                    
+         tabPanel("Input2",
+                  fluidRow(
+                    box(
+                      title = "",
+                      status = "primary", solidHeader = TRUE, width = 2, #height = '200px',
+                      style = "height: 550px; overflow-y: auto;",
+                      div(style = "position: absolute; left: 10px;",
+                          selectInput("find_marker_cell_cluster_plot_method", "",
+                                      width = "140px",
+                                      choices = c("UMAP", "PCA"), 
+                                      selected = "UMAP"
+                          )
+                      ),
+                      plotOutput("find_marker_cell_cluster_plot")
+                    )
+                  )
+                  
+                  
+         ), 
+         
+         tabPanel("Viewer", 
+                  fluidRow(
+                    box(
+                      title = "",
+                      status = "primary", solidHeader = TRUE, width = 2, 
+                      style = "height: 550px; overflow-y: auto;",
+                      actionButton("find_marker_submit_allpairs", "Find-All", class = "btn-danger"),
+                      dataTableOutput("find_marker_table_genes")
+                    )
+                  )
+                  
+         ),
+         
+         tabPanel("Report", 
+                  fluidRow(
+                    box(
+                      title = "",
+                      status = "primary", solidHeader = TRUE, width = 2, 
+                      style = "height: 550px; overflow-y: auto;",
+                      actionButton("show_function_table", "Show", class = "btn-danger"),
+                      dataTableOutput("find_marker_table_functions")
+                    )
+                    
+                  )
+                  
+         )
+  ) # tabBox end.
+  
 )
 
 

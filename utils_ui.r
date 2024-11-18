@@ -445,9 +445,7 @@ tab_find_marker <- tabItem(
                   title = "Cluster-enriched Function",
                   status = "primary", solidHeader = TRUE, width = 12, 
                   style = "height: 550px; overflow-y: auto;",
-                  # div(style = "position: absolute; top: 30px; left: 10px;",
-                  #     uiOutput("find_marker_functermdb_selector")
-                  # ),
+                  actionButton("show_function_table", "Show", class = "btn-danger"),
                   dataTableOutput("find_marker_table_functions")
                 )
                 

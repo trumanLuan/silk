@@ -592,19 +592,10 @@ observeEvent(input$find_marker_submit_allpairs,{
 })
 
 
-# observeEvent(input$find_marker_submit_selected,{
-#     
-#     output$find_marker_table_genes <- renderDataTable({
-#       data.now <- rv$data[[input$selected_sample_doublet]]
-#       Seurat::DimPlot(data.now,  reduction = 'UMAP',group.by = "scDblFinder.class")
-#       
-#     })
-# })
-
 ##* ******************************
 ## tab_find_marker: tabPanel of 'Biological Functions'
 
-observeEvent(input$find_marker_submit_allpairs,{
+observeEvent(input$show_function_table,{
   if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
     plot.new()
     text(0.4, 0.5, "No combined dataset\n was detected.", col = "red", font = 2, cex = 1.5)
@@ -613,18 +604,22 @@ observeEvent(input$find_marker_submit_allpairs,{
       
       data.now <- read.table(file.path(rv$output_dir, '3_DEA/sce_integrated_seurat.cluster_findAllMarkers.tsv'), header=T, sep='\t', as.is=T)
       
-      data.now <- read.table(file.path(output_dir, '3_DEA/sce_integrated_seurat.cluster_findAllMarkers.tsv'), header=T, sep='\t', as.is=T)
+      #output_dir<-"/Users/yizhaoluan/project/test_output"
+      #data.now <- read.table(file.path(output_dir, '3_DEA/sce_integrated_seurat.cluster_findAllMarkers.tsv'), header=T, sep='\t', as.is=T)
       uniq.cluster <- unique(data.now$cluster)
+      
       data.now.results <- NULL
       for(cluster.i in uniq.cluster){
-        
+        cluster.genes <- subset(data.now, cluster == cluster.i)
+        cluster.enrich <- enrichr_gsa_all_subcat(genes=cluster.genes$gene, species= "Homo sapiens", all_subcat = TRUE)
+        data.now.results <- rbind(data.now.results, 
+                                  cbind(data.frame(cluster=rep(cluster.i, nrow(cluster.enrich))), cluster.enrich) 
+                                  )
       }
       
+      write.table(data.now.results, file.path(rv$output_dir, '3_DEA/sce_integrated_seurat.cluster_markerFunctions.tsv'), quote = FALSE, sep = '\t', row.names = TRUE, col.names = TRUE)
       
-      # write.table(data.now, file.path(rv$output_dir, '3_DEA/sce_integrated_seurat.cluster_findAllMarkers.tsv'), quote = FALSE, sep = '\t', row.names = TRUE, col.names = TRUE)
-      
-      
-      datatable(data.now)
+      datatable(data.now.results)
     })
   }
 })

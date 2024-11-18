@@ -9,7 +9,7 @@ library(fs)
 library(plotly)
 library(DT)
 
-library(SCpubr)
+# library(SCpubr)
 library(ggplot2)
 library(dplyr)
 library(reshape2)
@@ -42,3 +42,4 @@ library(ROGUE) # evaluate cluster purity
 # library(SCPubr)
 
 library(clusterProfiler) # for functiontal enrichment
+library(msigdbr)

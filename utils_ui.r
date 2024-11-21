@@ -7,60 +7,6 @@ rm_outliers_from_df <- function(df, cols){
   }
 }
 
-# ##* *************************
-# library(DoubletFinder)
-# 
-# my_paramSweep <- function (seu, PCs = 1:10, sct = FALSE, num.cores = 1) 
-# {
-#   require(Seurat)
-#   require(fields)
-#   require(parallel)
-#   pK <- c(5e-04, 0.001, 0.005, seq(0.01, 0.3, by = 0.01))
-#   pN <- seq(0.05, 0.3, by = 0.05)
-#   min.cells <- round(nrow(seu@meta.data)/(1 - 0.05) - nrow(seu@meta.data))
-#   pK.test <- round(pK * min.cells)
-#   pK <- pK[which(pK.test >= 1)]
-#   orig.commands <- seu@commands
-#   if (nrow(seu@meta.data) > 10000) {
-#     real.cells <- rownames(seu@meta.data)[sample(1:nrow(seu@meta.data), 
-#                                                  10000, replace = FALSE)]
-#     data <- seu@assays$RNA@counts[, real.cells]
-#     n.real.cells <- ncol(data)
-#   }
-#   if (nrow(seu@meta.data) <= 10000) {
-#     real.cells <- rownames(seu@meta.data)
-#     data <- seu@assays$RNA$counts
-#     n.real.cells <- ncol(data)
-#   }
-#   if (num.cores > 1) {
-#     require(parallel)
-#     cl <- makeCluster(num.cores)
-#     output2 <- mclapply(as.list(1:length(pN)), FUN = parallel_paramSweep, 
-#                         n.real.cells, real.cells, pK, pN, data, orig.commands, 
-#                         PCs, sct, mc.cores = num.cores)
-#     stopCluster(cl)
-#   }
-#   else {
-#     output2 <- lapply(as.list(1:length(pN)), FUN = parallel_paramSweep, 
-#                       n.real.cells, real.cells, pK, pN, data, orig.commands, 
-#                       PCs, sct)
-#   }
-#   sweep.res.list <- list()
-#   list.ind <- 0
-#   for (i in 1:length(output2)) {
-#     for (j in 1:length(output2[[i]])) {
-#       list.ind <- list.ind + 1
-#       sweep.res.list[[list.ind]] <- output2[[i]][[j]]
-#     }
-#   }
-#   name.vec <- NULL
-#   for (j in 1:length(pN)) {
-#     name.vec <- c(name.vec, paste("pN", pN[j], "pK", pK, 
-#                                   sep = "_"))
-#   }
-#   names(sweep.res.list) <- name.vec
-#   return(sweep.res.list)
-# }
 
 
 ##* *************************
@@ -151,27 +97,47 @@ tab_load <- tabItem(
              
     ), # end of tabPanel: 10X
     
-    tabPanel("GEX", 
-             tags$div(
-               tags$p(style = "font-size: 18px; font-weight: bold;text-decoration: underline;", "Hard-cutoff method")
-             ),
-             br(),
-             checkboxGroupInput("checkboxes2", "Choose options:",
-                                choices = c("Option A", "Option B", "Option C")),
-             dateRangeInput("dates2", "Select date range:"),
-             plotOutput("plot2")
-    ), # end of tabPanel: GEX
+    # tabPanel("GEX", 
+    #          br(),
+    #          
+    #          checkboxGroupInput("checkboxes2", "Choose options:",
+    #                             choices = c("Option A", "Option B", "Option C")),
+    #          dateRangeInput("dates2", "Select date range:"),
+    #          plotOutput("plot2")
+    # ), # end of tabPanel: GEX
     
     tabPanel("SeuratObject", 
-             tags$div(
-               tags$p(style = "font-size: 16px; font-weight: bold;text-decoration: underline;", 
-                      "Start from SeuratObject to save time.")
-             ),
-             br(),
-             checkboxGroupInput("checkboxes2", "Choose options:",
-                                choices = c("Option A", "Option B", "Option C")),
-             dateRangeInput("dates2", "Select date range:"),
-             plotOutput("plot2")
+             
+             fluidRow(
+               column(6, 
+                      br(),
+                      
+                      # 文件选择框
+                      fileInput("file", 
+                                label = "选择一个文件", 
+                                multiple = FALSE, # 是否允许多文件上传
+                                accept = c(".csv", ".txt") # 限制文件类型
+                      ),
+                      helpText("支持 .csv 和 .txt 文件。"),
+                      helpText("支持 .csv 和 .txt 文件2。"),
+                      
+                      br(),
+                      actionButton("load_seurat_submit", "Submit", class = "btn-danger")
+                      
+               ), # left-column end
+               column(6,
+                      br(),
+                      
+                      h4("提交的表单内容:"),
+                      verbatimTextOutput("load_seurat_form_data"),
+                      
+                      # 打印分析过程与结果
+                      h4("加载数据核查结果:"),
+                      verbatimTextOutput("load_seurat_submit_result")
+                      
+               )
+             )
+             
     ), # end of tabPanel: SeuratObject
     
     tabPanel("Interoperability", 
@@ -471,61 +437,53 @@ tab_annotatecell <- tabItem(
                   
                   fluidRow(
                     column(6, 
-                           tags$div(
-                             tags$p(style = "font-size: 18px; font-weight: bold; text-decoration: underline;", "Select Files"),
-                           ),
                            br(),
                            
-                           h4("1.Select data files:"),
-                           shinyDirButton(id = "load_10x_select_folder", label = "Select Folder", "Select Folder:"),
-                           verbatimTextOutput("load_10x_selected_folder"),
-                           # verbatimTextOutput("load_10x_selected_folder_content"),
+                           # 单选控件（横向排列）
+                           radioButtons("form_choice", "Choose one pipeline:",
+                                        choices = c("SingleR" = "form_singler",
+                                                    # "AUCell" = "form_aucell",
+                                                    "ScType" = "form_sctype"),
+                                        selected = "form_singler",
+                                        inline = TRUE),  # 设置为横向排列
                            
-                           h4("2.Sample metatable (optional):"),
-                           shinyFilesButton(id = 'load_10x_select_samplemeta', label = "Select File", "Select File:", multiple = FALSE),
-                           verbatimTextOutput("load_10x_selected_samplemeta"),
-                           
-                           h4("3.Define project directory:"),
-                           shinyDirButton(id = 'load_10x_define_output_dir', label = "Select Folder", "Select Folder:", multiple = FALSE),
-                           verbatimTextOutput("load_10x_selected_output_dir"),
+                           # 动态表单区域
+                           uiOutput("annotcell_dynamic_form"),
                            
                            br(),
                            shinyjs::useShinyjs(),
-                           actionButton("load_10x_submit", "Submit", class = "btn-danger")
+                           actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
                            
-                    ) # left-column end
+                    ), # left-column end
+                    column(6,
+                           br(),
+                           
+                           h4("提交的表单内容:"),
+                           verbatimTextOutput("annotcell_form_data"),
+                           
+                           # 打印分析过程与结果
+                           h4("统计分析结果:"),
+                           verbatimTextOutput("annotcell_form_submit_result")
+                           
+                           )
                   )
          ),
                     
-         tabPanel("Input2",
-                  fluidRow(
-                    box(
-                      title = "",
-                      status = "primary", solidHeader = TRUE, width = 2, #height = '200px',
-                      style = "height: 550px; overflow-y: auto;",
-                      div(style = "position: absolute; left: 10px;",
-                          selectInput("find_marker_cell_cluster_plot_method", "",
-                                      width = "140px",
-                                      choices = c("UMAP", "PCA"), 
-                                      selected = "UMAP"
-                          )
-                      ),
-                      plotOutput("find_marker_cell_cluster_plot")
-                    )
-                  )
-                  
-                  
-         ), 
-         
          tabPanel("Viewer", 
                   fluidRow(
-                    box(
-                      title = "",
-                      status = "primary", solidHeader = TRUE, width = 2, 
-                      style = "height: 550px; overflow-y: auto;",
-                      actionButton("find_marker_submit_allpairs", "Find-All", class = "btn-danger"),
-                      dataTableOutput("find_marker_table_genes")
-                    )
+                      column(6,
+                             br(),
+                             
+                             plotOutput("annotcell_vis_clustering")
+                             ),
+                      column(6,
+                             br(),
+                             
+                             h4("Gene-based map:"),
+                             textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                             plotOutput("annotcell_vis_clustering_selectgene"),
+                             plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                            )
                   )
                   
          ),
@@ -550,16 +508,16 @@ tab_annotatecell <- tabItem(
 
 
 
-##* ~~~~~~~~~~~~~~~~
-
-tab_infercnv <- tabItem(
-  tabName = "infercnv",
-  h2("Differential Expression Analysis"),
-  p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
-  # 添加具体的UI元素，如图表和表格
-  # plotlyOutput("clusterAnalysisPlot")
-)
-
+# ##* ~~~~~~~~~~~~~~~~
+# 
+# tab_infercnv <- tabItem(
+#   tabName = "infercnv",
+#   h2("Differential Expression Analysis"),
+#   p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
+#   # 添加具体的UI元素，如图表和表格
+#   # plotlyOutput("clusterAnalysisPlot")
+# )
+# 
 
 
 
@@ -568,9 +526,80 @@ tab_infercnv <- tabItem(
 tab_ccc <- tabItem(
   tabName = "ccc",
   h2("Cell-Cell Communication"),
-  p("This section provides tools for performing differential expression analysis between different clusters or conditions.")
-  # 添加具体的UI元素，如图表和表格
-  # plotlyOutput("diffExpPlot")
+  p("Inference and visualization of different types of cell-cell interactions."),
+  # 
+  # # 添加具体的UI元素，如图表和表格
+  # tabBox(title = "", width = 12,
+  #        
+  #        tabPanel("Input", 
+  #                 
+  #                 fluidRow(
+  #                   column(6, 
+  #                          br(),
+  #                          
+  #                          # 单选控件（横向排列）
+  #                          radioButtons("annotcell_form_choice", "Choose one pipeline:",
+  #                                       choices = c("SingleR" = "form_singler",
+  #                                                   # "AUCell" = "form_aucell",
+  #                                                   "ScType" = "form_sctype"),
+  #                                       selected = "form_singler",
+  #                                       inline = TRUE),  # 设置为横向排列
+  #                          
+  #                          # 动态表单区域
+  #                          uiOutput("annotcell_dynamic_form"),
+  #                          
+  #                          br(),
+  #                          shinyjs::useShinyjs(),
+  #                          actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+  #                          
+  #                   ), # left-column end
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          h4("提交的表单内容:"),
+  #                          verbatimTextOutput("annotcell_form_data"),
+  #                          
+  #                          # 打印分析过程与结果
+  #                          h4("统计分析结果:"),
+  #                          verbatimTextOutput("annotcell_form_submit_result")
+  #                          
+  #                   )
+  #                 )
+  #        ),
+  #        
+  #        tabPanel("Viewer", 
+  #                 fluidRow(
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          plotOutput("annotcell_vis_clustering")
+  #                   ),
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          h4("Gene-based map:"),
+  #                          textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+  #                          plotOutput("annotcell_vis_clustering_selectgene"),
+  #                          plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+  #                   )
+  #                 )
+  #                 
+  #        ),
+  #        
+  #        tabPanel("Report", 
+  #                 fluidRow(
+  #                   box(
+  #                     title = "",
+  #                     status = "primary", solidHeader = TRUE, width = 2, 
+  #                     style = "height: 550px; overflow-y: auto;",
+  #                     actionButton("show_function_table", "Show", class = "btn-danger"),
+  #                     dataTableOutput("find_marker_table_functions")
+  #                   )
+  #                   
+  #                 )
+  #                 
+  #        )
+  # ) # tabBox end.
 )
 
 
@@ -581,24 +610,95 @@ tab_ccc <- tabItem(
 tab_trajectory <- tabItem(
   tabName = "trajectory",
   h2("Trajectory Analysis"),
-  p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
-  # 添加具体的UI元素，如图表和表格
-  # plotlyOutput("clusterAnalysisPlot")
-)
-
-
-
-
-##* ~~~~~~~~~~~~~~~~
-
-tab_predGRN <- tabItem(
-  tabName = "iger",
-  h2("Infer Gene Expression Regulation Network"),
-  p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
-  # 添加具体的UI元素，如图表和表格
-  # plotlyOutput("clusterAnalysisPlot")
+  p("This section provides tools for analyzing clusters identified in the scRNA-seq data."),
+  # # 添加具体的UI元素，如图表和表格
+  # tabBox(title = "", width = 12,
+  #        
+  #        tabPanel("Input", 
+  #                 
+  #                 fluidRow(
+  #                   column(6, 
+  #                          br(),
+  #                          
+  #                          # 单选控件（横向排列）
+  #                          radioButtons("annotcell_form_choice", "Choose one pipeline:",
+  #                                       choices = c("SingleR" = "form_singler",
+  #                                                   # "AUCell" = "form_aucell",
+  #                                                   "ScType" = "form_sctype"),
+  #                                       selected = "form_singler",
+  #                                       inline = TRUE),  # 设置为横向排列
+  #                          
+  #                          # 动态表单区域
+  #                          uiOutput("annotcell_dynamic_form"),
+  #                          
+  #                          br(),
+  #                          shinyjs::useShinyjs(),
+  #                          actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+  #                          
+  #                   ), # left-column end
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          h4("提交的表单内容:"),
+  #                          verbatimTextOutput("annotcell_form_data"),
+  #                          
+  #                          # 打印分析过程与结果
+  #                          h4("统计分析结果:"),
+  #                          verbatimTextOutput("annotcell_form_submit_result")
+  #                          
+  #                   )
+  #                 )
+  #        ),
+  #        
+  #        tabPanel("Viewer", 
+  #                 fluidRow(
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          plotOutput("annotcell_vis_clustering")
+  #                   ),
+  #                   column(6,
+  #                          br(),
+  #                          
+  #                          h4("Gene-based map:"),
+  #                          textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+  #                          plotOutput("annotcell_vis_clustering_selectgene"),
+  #                          plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+  #                   )
+  #                 )
+  #                 
+  #        ),
+  #        
+  #        tabPanel("Report", 
+  #                 fluidRow(
+  #                   box(
+  #                     title = "",
+  #                     status = "primary", solidHeader = TRUE, width = 2, 
+  #                     style = "height: 550px; overflow-y: auto;",
+  #                     actionButton("show_function_table", "Show", class = "btn-danger"),
+  #                     dataTableOutput("find_marker_table_functions")
+  #                   )
+  #                   
+  #                 )
+  #                 
+  #        )
+  # ) # tabBox end.
   
 )
+
+
+
+
+# ##* ~~~~~~~~~~~~~~~~
+# 
+# tab_predGRN <- tabItem(
+#   tabName = "iger",
+#   h2("Infer Gene Expression Regulation Network"),
+#   p("This section provides tools for analyzing clusters identified in the scRNA-seq data.")
+#   # 添加具体的UI元素，如图表和表格
+#   # plotlyOutput("clusterAnalysisPlot")
+#   
+# )
 
 
 
@@ -636,11 +736,11 @@ menu_pipe <- menuItem("Pipeline", icon = icon("sitemap"), startExpanded = TRUE,
                       
                       menuSubItem("Differential Analysis", tabName = 'find_marker', icon = icon("sort")),
                       menuSubItem("Annotate Cell Type", tabName = "annotatecell", icon = icon("arrow-up-a-z")),
-                      menuSubItem("Identify CNV", tabName = "infercnv", icon = icon("shuffle")),
+                      # menuSubItem("Identify CNV", tabName = "infercnv", icon = icon("shuffle")),
                       
                       menuSubItem("Cell-cell Communication", tabName = 'ccc', icon = icon("recycle")),
-                      menuSubItem("Trajectory Analysis", tabName = 'trajectory', icon = icon("up-down-left-right")),
-                      menuSubItem("Predict Gene regulation network", tabName = 'predGRN', icon = icon("arrows-turn-to-dots"))
+                      menuSubItem("Trajectory Analysis", tabName = 'trajectory', icon = icon("up-down-left-right"))
+                      # menuSubItem("Predict Gene regulation network", tabName = 'predGRN', icon = icon("arrows-turn-to-dots"))
 )
 
 ##* ~~~~~~~~~~~~~~~~

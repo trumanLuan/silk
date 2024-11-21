@@ -6,6 +6,8 @@ library(shinyFiles)
 library(shinyjs)
 library(fs)
 
+library(BiocParallel)
+
 library(plotly)
 library(DT)
 

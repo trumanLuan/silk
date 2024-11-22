@@ -117,10 +117,10 @@ body <- dashboardBody(
     tab_filter,
     tab_find_marker,
     tab_annotatecell,
-    tab_infercnv,
+    # tab_infercnv,
     tab_ccc,
     tab_trajectory,
-    tab_predGRN,
+    # tab_predGRN,
     tab_userguide
     
   )
@@ -141,6 +141,9 @@ server <- function(input, output, session){
   ## ---- for tab_load page
   # 指定常见的 macOS 目录
   volumes <- c(Home = fs::path_home(), Root = "/")
+  
+  ## define path root in win OS
+  
   
   # ## initialize shinyjs
   # shinyjs::useShinyjs()

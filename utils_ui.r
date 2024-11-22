@@ -13,6 +13,7 @@ rm_outliers_from_df <- function(df, cols){
 ##* UI Tabs
 ##* *************************
 
+options(shiny.maxRequestSize = 1000 * 1024^2) # file limits: 1000 Mb
 
 ##* **********
 tab_quickStart <- tabItem(
@@ -113,13 +114,13 @@ tab_load <- tabItem(
                       br(),
                       
                       # 文件选择框
-                      fileInput("file", 
-                                label = "选择一个文件", 
+                      fileInput("load_seurat_file", 
+                                label = "Choose one file...", 
                                 multiple = FALSE, # 是否允许多文件上传
-                                accept = c(".csv", ".txt") # 限制文件类型
+                                accept = c(".rds", ".RDS", ".Rds") # 限制文件类型
                       ),
-                      helpText("支持 .csv 和 .txt 文件。"),
-                      helpText("支持 .csv 和 .txt 文件2。"),
+                      helpText("支持 .rds 文件"),
+                      helpText("rds包含的R objects要是SeuratObject Class!"),
                       
                       br(),
                       actionButton("load_seurat_submit", "Submit", class = "btn-danger")

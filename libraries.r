@@ -35,7 +35,7 @@ library(AUCell) # cell type annotatino
 library(CellChat) # infer cell-cell communication # fail to install in win
 # library(liana) # infer cell-cell interaction # fail to install in win
 
-library(infercnv)  # infercnv
+# library(infercnv)  # infercnv
 library(slingshot) # for trajectory
 library(monocle) # for trajectory
 library(copykat) # infer cnv

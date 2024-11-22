@@ -143,7 +143,7 @@ server <- function(input, output, session){
   volumes <- c(Home = fs::path_home(), Root = "/")
   
   ## define path root in win OS
-  
+  # volumes <- getVolumes()
   
   # ## initialize shinyjs
   # shinyjs::useShinyjs()

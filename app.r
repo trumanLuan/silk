@@ -213,8 +213,6 @@ server <- function(input, output, session){
         tryCatch({
           rv$data <- readRDS(file_path)
           
-          # rv$data.combined <- seurat_object
-          
           # 检查对象是否为 SeuratObject
           if (class(rv$data.combined)[1] == "Seurat") {
             output$load_seurat_submit_result <- renderPrint({
@@ -813,7 +811,7 @@ observeEvent(input$annotcell_input_submit,{
         
         celltype.predict <- as.data.frame(celltype.predict)
         celltype.predict$cluster <- rownames(celltype.predict)
-        rv$data.combined[["identity_singler"]] <- sapply(curr.sce@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
+        rv$data.combined[["identity_singler"]] <- sapply(rv$data.combined@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
         
         saveRDS(rv$data.combined, file = file.path(rv$output_dir,  '1_Rds/seurat.filtered.integrated.singler_annot.rds'))
       }else{

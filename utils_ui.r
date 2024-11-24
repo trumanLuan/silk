@@ -529,79 +529,79 @@ tab_ccc <- tabItem(
   h2("Cell-Cell Communication"),
   p("Inference and visualization of different types of cell-cell interactions."),
   # 
-  # # 添加具体的UI元素，如图表和表格
-  # tabBox(title = "", width = 12,
-  #        
-  #        tabPanel("Input", 
-  #                 
-  #                 fluidRow(
-  #                   column(6, 
-  #                          br(),
-  #                          
-  #                          # 单选控件（横向排列）
-  #                          radioButtons("annotcell_form_choice", "Choose one pipeline:",
-  #                                       choices = c("SingleR" = "form_singler",
-  #                                                   # "AUCell" = "form_aucell",
-  #                                                   "ScType" = "form_sctype"),
-  #                                       selected = "form_singler",
-  #                                       inline = TRUE),  # 设置为横向排列
-  #                          
-  #                          # 动态表单区域
-  #                          uiOutput("annotcell_dynamic_form"),
-  #                          
-  #                          br(),
-  #                          shinyjs::useShinyjs(),
-  #                          actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
-  #                          
-  #                   ), # left-column end
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          h4("提交的表单内容:"),
-  #                          verbatimTextOutput("annotcell_form_data"),
-  #                          
-  #                          # 打印分析过程与结果
-  #                          h4("统计分析结果:"),
-  #                          verbatimTextOutput("annotcell_form_submit_result")
-  #                          
-  #                   )
-  #                 )
-  #        ),
-  #        
-  #        tabPanel("Viewer", 
-  #                 fluidRow(
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          plotOutput("annotcell_vis_clustering")
-  #                   ),
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          h4("Gene-based map:"),
-  #                          textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-  #                          plotOutput("annotcell_vis_clustering_selectgene"),
-  #                          plotOutput("annotcell_vis_clustering_selectgene_boxplot")
-  #                   )
-  #                 )
-  #                 
-  #        ),
-  #        
-  #        tabPanel("Report", 
-  #                 fluidRow(
-  #                   box(
-  #                     title = "",
-  #                     status = "primary", solidHeader = TRUE, width = 2, 
-  #                     style = "height: 550px; overflow-y: auto;",
-  #                     actionButton("show_function_table", "Show", class = "btn-danger"),
-  #                     dataTableOutput("find_marker_table_functions")
-  #                   )
-  #                   
-  #                 )
-  #                 
-  #        )
-  # ) # tabBox end.
-)
+  tabBox(title = "", width = 12,
+         
+         tabPanel("Input", 
+                  
+                  fluidRow(
+                    column(6, 
+                           br(),
+                           
+                           # 单选控件（横向排列）
+                           radioButtons("form_choice", "Choose one pipeline:",
+                                        choices = c("SingleR" = "form_singler",
+                                                    # "AUCell" = "form_aucell",
+                                                    "ScType" = "form_sctype"),
+                                        selected = "form_singler",
+                                        inline = TRUE),  # 设置为横向排列
+                           
+                           # 动态表单区域
+                           uiOutput("annotcell_dynamic_form"),
+                           
+                           br(),
+                           shinyjs::useShinyjs(),
+                           actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+                           
+                    ), # left-column end
+                    column(6,
+                           br(),
+                           
+                           h4("提交的表单内容:"),
+                           verbatimTextOutput("annotcell_form_data"),
+                           
+                           # 打印分析过程与结果
+                           h4("统计分析结果:"),
+                           verbatimTextOutput("annotcell_form_submit_result")
+                           
+                    )
+                  )
+         ),
+         
+         tabPanel("Viewer", 
+                  fluidRow(
+                    column(6,
+                           br(),
+                           
+                           plotOutput("annotcell_vis_clustering")
+                    ),
+                    column(6,
+                           br(),
+                           
+                           h4("Gene-based map:"),
+                           textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                           plotOutput("annotcell_vis_clustering_selectgene"),
+                           plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                    )
+                  )
+                  
+         ),
+         
+         tabPanel("Report", 
+                  fluidRow(
+                    box(
+                      title = "",
+                      status = "primary", solidHeader = TRUE, width = 2, 
+                      style = "height: 550px; overflow-y: auto;",
+                      actionButton("show_function_table", "Show", class = "btn-danger"),
+                      dataTableOutput("find_marker_table_functions")
+                    )
+                    
+                  )
+                  
+         )
+  ) # tabBox end.
+  
+  )
 
 
 
@@ -613,78 +613,77 @@ tab_trajectory <- tabItem(
   h2("Trajectory Analysis"),
   p("This section provides tools for analyzing clusters identified in the scRNA-seq data."),
   # # 添加具体的UI元素，如图表和表格
-  # tabBox(title = "", width = 12,
-  #        
-  #        tabPanel("Input", 
-  #                 
-  #                 fluidRow(
-  #                   column(6, 
-  #                          br(),
-  #                          
-  #                          # 单选控件（横向排列）
-  #                          radioButtons("annotcell_form_choice", "Choose one pipeline:",
-  #                                       choices = c("SingleR" = "form_singler",
-  #                                                   # "AUCell" = "form_aucell",
-  #                                                   "ScType" = "form_sctype"),
-  #                                       selected = "form_singler",
-  #                                       inline = TRUE),  # 设置为横向排列
-  #                          
-  #                          # 动态表单区域
-  #                          uiOutput("annotcell_dynamic_form"),
-  #                          
-  #                          br(),
-  #                          shinyjs::useShinyjs(),
-  #                          actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
-  #                          
-  #                   ), # left-column end
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          h4("提交的表单内容:"),
-  #                          verbatimTextOutput("annotcell_form_data"),
-  #                          
-  #                          # 打印分析过程与结果
-  #                          h4("统计分析结果:"),
-  #                          verbatimTextOutput("annotcell_form_submit_result")
-  #                          
-  #                   )
-  #                 )
-  #        ),
-  #        
-  #        tabPanel("Viewer", 
-  #                 fluidRow(
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          plotOutput("annotcell_vis_clustering")
-  #                   ),
-  #                   column(6,
-  #                          br(),
-  #                          
-  #                          h4("Gene-based map:"),
-  #                          textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-  #                          plotOutput("annotcell_vis_clustering_selectgene"),
-  #                          plotOutput("annotcell_vis_clustering_selectgene_boxplot")
-  #                   )
-  #                 )
-  #                 
-  #        ),
-  #        
-  #        tabPanel("Report", 
-  #                 fluidRow(
-  #                   box(
-  #                     title = "",
-  #                     status = "primary", solidHeader = TRUE, width = 2, 
-  #                     style = "height: 550px; overflow-y: auto;",
-  #                     actionButton("show_function_table", "Show", class = "btn-danger"),
-  #                     dataTableOutput("find_marker_table_functions")
-  #                   )
-  #                   
-  #                 )
-  #                 
-  #        )
-  # ) # tabBox end.
-  
+  tabBox(title = "", width = 12,
+         
+         tabPanel("Input", 
+                  
+                  fluidRow(
+                    column(6, 
+                           br(),
+                           
+                           # 单选控件（横向排列）
+                           radioButtons("form_choice", "Choose one pipeline:",
+                                        choices = c("SingleR" = "form_singler",
+                                                    # "AUCell" = "form_aucell",
+                                                    "ScType" = "form_sctype"),
+                                        selected = "form_singler",
+                                        inline = TRUE),  # 设置为横向排列
+                           
+                           # 动态表单区域
+                           uiOutput("annotcell_dynamic_form"),
+                           
+                           br(),
+                           shinyjs::useShinyjs(),
+                           actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+                           
+                    ), # left-column end
+                    column(6,
+                           br(),
+                           
+                           h4("提交的表单内容:"),
+                           verbatimTextOutput("annotcell_form_data"),
+                           
+                           # 打印分析过程与结果
+                           h4("统计分析结果:"),
+                           verbatimTextOutput("annotcell_form_submit_result")
+                           
+                    )
+                  )
+         ),
+         
+         tabPanel("Viewer", 
+                  fluidRow(
+                    column(6,
+                           br(),
+                           
+                           plotOutput("annotcell_vis_clustering")
+                    ),
+                    column(6,
+                           br(),
+                           
+                           h4("Gene-based map:"),
+                           textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                           plotOutput("annotcell_vis_clustering_selectgene"),
+                           plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                    )
+                  )
+                  
+         ),
+         
+         tabPanel("Report", 
+                  fluidRow(
+                    box(
+                      title = "",
+                      status = "primary", solidHeader = TRUE, width = 2, 
+                      style = "height: 550px; overflow-y: auto;",
+                      actionButton("show_function_table", "Show", class = "btn-danger"),
+                      dataTableOutput("find_marker_table_functions")
+                    )
+                    
+                  )
+                  
+         )
+  ) # tabBox end.  
 )
 
 

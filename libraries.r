@@ -15,6 +15,8 @@ library(ggplot2)
 library(dplyr)
 library(reshape2)
 
+library(SCpubr)
+
 library(corrplot) # for plotting correlation between samples
 library(psych) # for pairs.panels for plotting correlation between smaples
 
@@ -45,7 +47,7 @@ library(SCENIC)
 
 library(ROGUE) # evaluate cluster purity
 
-library(SCpubr)
+
 
 library(clusterProfiler) # for functiontal enrichment
 library(msigdbr)

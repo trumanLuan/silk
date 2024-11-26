@@ -435,16 +435,13 @@ tab_annotatecell <- tabItem(
   tabBox(title = "", width = 12,
          
          tabPanel("Input", 
-                  
                   fluidRow(
                     column(6, 
                            br(),
                            
                            # 单选控件（横向排列）
                            radioButtons("form_choice", "Choose one pipeline:",
-                                        choices = c("SingleR" = "form_singler",
-                                                    # "AUCell" = "form_aucell",
-                                                    "ScType" = "form_sctype"),
+                                        choices = c("SingleR" = "form_singler", "ScType" = "form_sctype"),
                                         selected = "form_singler",
                                         inline = TRUE),  # 设置为横向排列
                            
@@ -452,7 +449,7 @@ tab_annotatecell <- tabItem(
                            uiOutput("annotcell_dynamic_form"),
                            
                            br(),
-                           shinyjs::useShinyjs(),
+                           # shinyjs::useShinyjs(),
                            actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
                            
                     ), # left-column end
@@ -463,8 +460,8 @@ tab_annotatecell <- tabItem(
                            verbatimTextOutput("annotcell_form_data"),
                            
                            # 打印分析过程与结果
-                           h4("统计分析结果:"),
-                           verbatimTextOutput("annotcell_form_submit_result")
+                           h4("Reference Cell Atlas Information:"),
+                           verbatimTextOutput("annotcell_cellref_stats")
                            
                            )
                   )
@@ -482,8 +479,9 @@ tab_annotatecell <- tabItem(
                              
                              h4("Gene-based map:"),
                              textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                             actionButton("annotcell_viewer_gene_submit", "Go", class = "btn-success"),
                              plotOutput("annotcell_vis_clustering_selectgene"),
-                             plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                             # plotOutput("annotcell_vis_clustering_selectgene_boxplot")
                             )
                   )
                   
@@ -495,8 +493,8 @@ tab_annotatecell <- tabItem(
                       title = "",
                       status = "primary", solidHeader = TRUE, width = 2, 
                       style = "height: 550px; overflow-y: auto;",
-                      actionButton("show_function_table", "Show", class = "btn-danger"),
-                      dataTableOutput("find_marker_table_functions")
+                      actionButton("annotcell_generate_table", "Show", class = "btn-danger"),
+                      dataTableOutput("annotcell_table_results")
                     )
                     
                   )
@@ -538,7 +536,7 @@ tab_ccc <- tabItem(
                            br(),
                            
                            # 单选控件（横向排列）
-                           radioButtons("form_choice", "Choose one pipeline:",
+                           radioButtons("ccc_form_choice", "Choose one pipeline:",
                                         choices = c("SingleR" = "form_singler",
                                                     # "AUCell" = "form_aucell",
                                                     "ScType" = "form_sctype"),
@@ -546,22 +544,22 @@ tab_ccc <- tabItem(
                                         inline = TRUE),  # 设置为横向排列
                            
                            # 动态表单区域
-                           uiOutput("annotcell_dynamic_form"),
+                           uiOutput("ccc_dynamic_form"),
                            
                            br(),
                            shinyjs::useShinyjs(),
-                           actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+                           actionButton("ccc_input_submit", "Submit", class = "btn-danger")
                            
                     ), # left-column end
                     column(6,
                            br(),
                            
                            h4("提交的表单内容:"),
-                           verbatimTextOutput("annotcell_form_data"),
+                           verbatimTextOutput("ccc_form_data"),
                            
                            # 打印分析过程与结果
                            h4("统计分析结果:"),
-                           verbatimTextOutput("annotcell_form_submit_result")
+                           verbatimTextOutput("ccc_form_submit_result")
                            
                     )
                   )
@@ -572,15 +570,15 @@ tab_ccc <- tabItem(
                     column(6,
                            br(),
                            
-                           plotOutput("annotcell_vis_clustering")
+                           plotOutput("ccc_vis_clustering")
                     ),
                     column(6,
                            br(),
                            
                            h4("Gene-based map:"),
-                           textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-                           plotOutput("annotcell_vis_clustering_selectgene"),
-                           plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                           textInput("ccc_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                           plotOutput("ccc_vis_clustering_selectgene"),
+                           plotOutput("ccc_vis_clustering_selectgene_boxplot")
                     )
                   )
                   
@@ -592,8 +590,8 @@ tab_ccc <- tabItem(
                       title = "",
                       status = "primary", solidHeader = TRUE, width = 2, 
                       style = "height: 550px; overflow-y: auto;",
-                      actionButton("show_function_table", "Show", class = "btn-danger"),
-                      dataTableOutput("find_marker_table_functions")
+                      actionButton("ccc_generate_table", "Show", class = "btn-danger"),
+                      dataTableOutput("ccc_table_results")
                     )
                     
                   )
@@ -622,7 +620,7 @@ tab_trajectory <- tabItem(
                            br(),
                            
                            # 单选控件（横向排列）
-                           radioButtons("form_choice", "Choose one pipeline:",
+                           radioButtons("trajectory_form_choice", "Choose one pipeline:",
                                         choices = c("SingleR" = "form_singler",
                                                     # "AUCell" = "form_aucell",
                                                     "ScType" = "form_sctype"),
@@ -630,22 +628,22 @@ tab_trajectory <- tabItem(
                                         inline = TRUE),  # 设置为横向排列
                            
                            # 动态表单区域
-                           uiOutput("annotcell_dynamic_form"),
+                           uiOutput("trajectory_dynamic_form"),
                            
                            br(),
                            shinyjs::useShinyjs(),
-                           actionButton("annotcell_input_submit", "Submit", class = "btn-danger")
+                           actionButton("trajectory_input_submit", "Submit", class = "btn-danger")
                            
                     ), # left-column end
                     column(6,
                            br(),
                            
                            h4("提交的表单内容:"),
-                           verbatimTextOutput("annotcell_form_data"),
+                           verbatimTextOutput("trajectory_form_data"),
                            
                            # 打印分析过程与结果
                            h4("统计分析结果:"),
-                           verbatimTextOutput("annotcell_form_submit_result")
+                           verbatimTextOutput("trajectory_form_submit_result")
                            
                     )
                   )
@@ -656,15 +654,15 @@ tab_trajectory <- tabItem(
                     column(6,
                            br(),
                            
-                           plotOutput("annotcell_vis_clustering")
+                           plotOutput("trajectory_vis_clustering")
                     ),
                     column(6,
                            br(),
                            
                            h4("Gene-based map:"),
-                           textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-                           plotOutput("annotcell_vis_clustering_selectgene"),
-                           plotOutput("annotcell_vis_clustering_selectgene_boxplot")
+                           textInput("trajectory_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
+                           plotOutput("trajectory_vis_clustering_selectgene"),
+                           plotOutput("trajectory_vis_clustering_selectgene_boxplot")
                     )
                   )
                   
@@ -676,8 +674,8 @@ tab_trajectory <- tabItem(
                       title = "",
                       status = "primary", solidHeader = TRUE, width = 2, 
                       style = "height: 550px; overflow-y: auto;",
-                      actionButton("show_function_table", "Show", class = "btn-danger"),
-                      dataTableOutput("find_marker_table_functions")
+                      actionButton("trajectory_generate_table", "Show", class = "btn-danger"),
+                      dataTableOutput("trajectory_table_results")
                     )
                     
                   )

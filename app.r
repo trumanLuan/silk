@@ -720,22 +720,13 @@ output$annotcell_dynamic_form <- renderUI({
              ),
              selectInput("form_sctype_tissue",
                          "Tissue type:",
-                         choices = c("Immune system",
-                                     "Liver",
-                                     "Pancreas",
-                                     "Kidney",
-                                     "Eye",
-                                     "Brain",
-                                     "Lung",
-                                     "Adrenal",
+                         choices = c("Immune system", "Liver", "Pancreas", "Kidney", "Eye", "Brain", "Lung", "Adrenal",
                                      "Heart", "Intestine", "Muscle", "Placenta","Spleen", "Stomach", "Thymus"
                          )
              ),
              selectInput("form_sctype_scaleassay",
                          "If scale:",
-                         choices = c("True",
-                                     "False"
-                         )
+                         choices = c("True", "False" )
                     )
              
            )
@@ -745,29 +736,71 @@ output$annotcell_dynamic_form <- renderUI({
 
 
 observeEvent(input$annotcell_input_submit,{
+  form_data <- switch(input$form_choice,
+                      "form_singler" = list(form_type = "SingleR", 
+                                            form_singler_ref = input$form_singler_selectref, 
+                                            form_singler_labeltype = input$form_singler_selectlabel, 
+                                            form_singler_ncore = input$form_singler_ncore),
+                      "form_sctype" = list(form_type = "ScType", 
+                                           form_sctype_ref = input$form_sctype_selectref, 
+                                           form_sctype_tissue = input$form_sctype_tissue,
+                                           form_sctype_scaleassay = input$form_sctype_scaleassay ) )
+  
   if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
-    output$annotcell_form_data <- renderPrint({
-      "No combined datasets was detected."
-    })
-  }else{
-    
-    form_data <- switch(input$form_choice,
-                        "form_singler" = list(form_type = "SingleR", 
-                                              form_singler_ref = input$form_singler_selectref, 
-                                              form_singler_labeltype = input$form_singler_selectlabel, 
-                                              form_singler_ncore = input$form_singler_ncore),
-                        "form_sctype" = list(form_type = "ScType", 
-                                             form_sctype_ref = input$form_sctype_selectref, 
-                                             form_sctype_tissue = input$form_sctype_tissue,
-                                             form_sctype_scaleassay = input$form_sctype_scaleassay ) )
-    
+    output$annotcell_form_data <- renderPrint({ "No combined datasets was detected." })
+  } else {
     output$annotcell_form_data <- renderPrint(form_data)
-    
-    # output$annotcell_form_submit_result <- renderPrint(
-    #
-    # )
-
   }
+  
+  if(form_data$form_type == "SingleR"){
+    
+        if(form_data$form_singler_ref == "BlueprintEncodeData") {
+          cell.ref <- BlueprintEncodeData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "DatabaseImmuneCellExpressionData"){
+          cell.ref <- DatabaseImmuneCellExpressionData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "HumanPrimaryCellAtlasData"){
+          cell.ref <- HumanPrimaryCellAtlasData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "ImmGenData"){
+          cell.ref <- ImmGenData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "MonacoImmuneData"){ 
+          cell.ref <- MonacoImmuneData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "MouseRNAseqData"){ 
+          cell.ref <- MouseRNAseqData(ensembl=F, cell.ont="nonna")
+        }else if(form_data$form_singler_ref == "NovershternHematopoieticData"){
+          cell.ref <- NovershternHematopoieticData(ensembl=F, cell.ont="nonna")
+        }
+        
+        if(form_data$form_singler_labeltype == "label.main") label.type = "label.main"
+        if(form_data$form_singler_labeltype == "label.fine") label.type = "label.fine"
+        
+        # Seurat_Object_Diet <- DietSeurat(rv$data.combined, graphs = "pca")
+        # rv$SCE <- as.SingleCellExperiment(Seurat_Object_Diet)
+        
+        multicorePara <- BiocParallel::MulticoreParam(workers = as.integer(form_data$form_singler_ncore) )
+        celltype.predict <- SingleR(test = GetAssayData(rv$data.combined), ref = cell.ref, labels = colData(cell.ref)[,label.type],
+                                    clusters = rv$data.combined@meta.data$seurat_clusters, assay.type.test=1, BPPARAM=multicorePara)
+        
+        celltype.predict <- as.data.frame(celltype.predict)
+        celltype.predict$cluster <- rownames(celltype.predict)
+        rv$data.combined[["identity_singler"]] <- sapply(rv$data.combined@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
+        
+        saveRDS(rv$data.combined, file = file.path(rv$output_dir,  '1_Rds/seurat.filtered.integrated.singler_annot.rds'))
+        
+        output$annotcell_vis_clustering <- renderPlot({
+          Idents(rv$data.combined) <- "identity_singler"
+          SCpubr::do_DimPlot(sample = rv$data.combined, reduction = 'umap', label=T )
+        })
+        
+  }else if(form_data$form_type == "ScType"){
+      output$annotcell_vis_clustering <- renderPlot({
+        "This method has not been defined."
+      })
+  }
+  
+  
+  
+  
+  
 })
 
 
@@ -789,42 +822,7 @@ observeEvent(input$annotcell_input_submit,{
                                              form_sctype_tissue = input$form_sctype_tissue,
                                              form_sctype_scaleassay = input$form_sctype_scaleassay ) )
 
-      if(form_data$form_type == "SingleR"){
-        
-        if(form_data$form_singler_ref == "BlueprintEncodeData") cell.ref <- BlueprintEncodeData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "DatabaseImmuneCellExpressionData") cell.ref <- DatabaseImmuneCellExpressionData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "HumanPrimaryCellAtlasData") cell.ref <- HumanPrimaryCellAtlasData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "ImmGenData") cell.ref <- ImmGenData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "MonacoImmuneData") cell.ref <- MonacoImmuneData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "MouseRNAseqData") cell.ref <- MouseRNAseqData(ensembl=F, cell.ont="nonna")
-        if(form_data$form_singler_ref == "NovershternHematopoieticData") cell.ref <- NovershternHematopoieticData(ensembl=F, cell.ont="nonna")
-        
-        if(form_data$form_singler_labeltype == "label.main") label.type = "label.main"
-        if(form_data$form_singler_labeltype == "label.fine") label.type = "label.fine"
-        
-        Seurat_Object_Diet <- DietSeurat(rv$data.combined, graphs = "pca")
-        rv$SCE <- as.SingleCellExperiment(Seurat_Object_Diet)
-        
-        multicorePara <- BiocParallel::MulticoreParam(workers = as.integer(form_data$form_singler_ncore) )
-        celltype.predict <- SingleR(test = rv$SCE, ref = cell.ref, labels = colData(cell.ref)[,label.type],
-                                    clusters = rv$data.combined@meta.data$seurat_clusters, assay.type.test=1, BPPARAM=multicorePara)
-        
-        celltype.predict <- as.data.frame(celltype.predict)
-        celltype.predict$cluster <- rownames(celltype.predict)
-        rv$data.combined[["identity_singler"]] <- sapply(rv$data.combined@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
-        
-        saveRDS(rv$data.combined, file = file.path(rv$output_dir,  '1_Rds/seurat.filtered.integrated.singler_annot.rds'))
-      }else{
-        if(form_data$form_type == "ScType"){
-          
-        }
-      }
       
-      
-      output$annotcell_vis_clustering <- renderPlot({
-        Idents(rv$data.combined) <- "identity_singler"
-        SCpubr::do_DimPlot(sample = rv$data.combined, reduction = 'UMAP', label=T )
-      })
 
       
   }

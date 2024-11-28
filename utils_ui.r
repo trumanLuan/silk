@@ -478,8 +478,18 @@ tab_annotatecell <- tabItem(
                              br(),
                              
                              h4("Gene-based map:"),
-                             textInput("annotcell_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-                             actionButton("annotcell_viewer_gene_submit", "Go", class = "btn-success"),
+                             textInput("annotcell_viewer_gene", 
+                                           label = NULL, 
+                                           value = "", 
+                                           placeholder = "Input Gene Symbol...", 
+                                           width = "100%"),
+                             actionButton(
+                                   "annotcell_viewer_gene_submit", 
+                                   "Go", 
+                                   class = "btn - success", 
+                                   style = "margin - left: 10px; height: 38px; line - height: 1.6;"
+                             ),
+                             
                              plotOutput("annotcell_vis_clustering_selectgene"),
                              # plotOutput("annotcell_vis_clustering_selectgene_boxplot")
                             )
@@ -520,7 +530,9 @@ tab_annotatecell <- tabItem(
 
 
 
+##* ******************************
 ##* ~~~~~~~~~~~~~~~~
+##* 
 
 tab_ccc <- tabItem(
   tabName = "ccc",

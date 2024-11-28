@@ -773,8 +773,6 @@ observeEvent(input$annotcell_input_submit,{
         if(form_data$form_singler_labeltype == "label.main") label.type = "label.main"
         if(form_data$form_singler_labeltype == "label.fine") label.type = "label.fine"
         
-        # Seurat_Object_Diet <- DietSeurat(rv$data.combined, graphs = "pca")
-        # rv$SCE <- as.SingleCellExperiment(Seurat_Object_Diet)
         
         multicorePara <- BiocParallel::MulticoreParam(workers = as.integer(form_data$form_singler_ncore) )
         celltype.predict <- SingleR(test = GetAssayData(rv$data.combined), ref = cell.ref, labels = colData(cell.ref)[,label.type],
@@ -805,23 +803,32 @@ observeEvent(input$annotcell_input_submit,{
 
 
 
-observeEvent(input$annotcell_input_submit,{
+##* ******************************
+##** tab_annotatecell: tabPanel of 'Viewer'
+
+observeEvent(input$annotcell_viewer_gene_submit,{
   if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
-    output$annotcell_form_data <- renderPrint({
+    output$annotcell_vis_clustering_selectgene <- renderPrint({
       "No combined datasets was detected."
     })
   }else{
     
-    form_data <- switch(input$form_choice,
-                        "form_singler" = list(form_type = "SingleR", 
-                                              form_singler_ref = input$form_singler_selectref, 
-                                              form_singler_labeltype = input$form_singler_selectlabel, 
-                                              form_singler_ncore = input$form_singler_ncore),
-                        "form_sctype" = list(form_type = "ScType", 
-                                             form_sctype_ref = input$form_sctype_selectref, 
-                                             form_sctype_tissue = input$form_sctype_tissue,
-                                             form_sctype_scaleassay = input$form_sctype_scaleassay ) )
-
+    input.gene <- input$annotcell_viewer_gene
+    
+    ## check whether input gene was included in current dataset
+    if( toupper(input.gene) %in% (rownames(rv$data.combined@assays$RNA))){
+        output$annotcell_vis_clustering_selectgene <- renderPlot({
+            Seurat::FeaturePlot(rv$data.combined, features = toupper(input.gene))
+        })
+    }else if( tolower(input.gene) %in% (rownames(rv$data.combined@assays$RNA)) ){
+        output$annotcell_vis_clustering_selectgene <- renderPlot({
+          Seurat::FeaturePlot(rv$data.combined, features = tolower(input.gene))
+        })
+    }else{
+        output$annotcell_vis_clustering_selectgene <- renderPlot({
+          "The Gene not identified in your data."
+        })
+    }
       
 
       
@@ -830,19 +837,29 @@ observeEvent(input$annotcell_input_submit,{
 
 
 ##* ******************************
-## tab_annotatecell: tabPanel of 'Viewer'
-
+##** tab_annotatecell: tabPanel of 'Report'
 
 
 
 ##* ******************************
-## tab_annotatecell: tabPanel of 'Report'
+##* tab_ccc module, tabpanel of 'Input'
+##* 
 
 
-  ##* ***** update from here
+##* ******************************
+##* tab_ccc module, tabpanel of 'Input'
+##* 
 
-  
-  
+
+##* ******************************
+##* tab_ccc module, tabpanel of 'Input'
+##* 
+
+
+
+
+
+
 } ## server end
 
 

@@ -581,7 +581,8 @@ tab_ccc <- tabItem(
                     column(6,
                            br(),
                            
-                           plotOutput("ccc_vis_clustering")
+                           plotOutput("ccc_vis_netCount"),
+                           plotOutput("ccc_vis_netWeight")
                     ),
                     column(6,
                            br(),
@@ -590,6 +591,18 @@ tab_ccc <- tabItem(
                            textInput("ccc_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
                            plotOutput("ccc_vis_clustering_selectgene"),
                            plotOutput("ccc_vis_clustering_selectgene_boxplot")
+                    )
+                  ), 
+                  fluidRow(
+                      column(12, 
+                             br(),
+                             dataTableOutput("ccc_table_lrPair")
+                             )
+                  ),
+                  fluidRow(
+                    column(12, 
+                           br(),
+                           dataTableOutput("ccc_table_signalPathway")
                     )
                   )
                   

@@ -849,11 +849,11 @@ output$ccc_dynamic_form <- renderUI({
              # textInput("input_a1", "输入字段 A1："),
              selectInput("form_cellchat_idents",
                          "Set the idents:",
-                         choices = c("Cell clusters", "Cell type identity")
+                         choices = c("Cell clusters", "Cell type identity", 'Customized')
              ),
              selectInput("form_cellchat_refdb",
                          "Set the ligand-receptor interaction database:",
-                         choices = c("label.main", "label.fine")
+                         choices = c("CellChatDB.human", "CellChatDB.mouse", "Customized")
              ),
              numericInput("form_cellchat_ncore", "N of Cores:", value = 4)
            )
@@ -885,62 +885,84 @@ output$ccc_dynamic_form <- renderUI({
 ##* actionButton submit events
 ##* 
 
-observeEvent(input$annotcell_input_submit,{
-  form_data <- switch(input$form_choice,
-                      "form_singler" = list(form_type = "SingleR", 
-                                            form_singler_ref = input$form_singler_selectref, 
-                                            form_singler_labeltype = input$form_singler_selectlabel, 
-                                            form_singler_ncore = input$form_singler_ncore),
-                      "form_sctype" = list(form_type = "ScType", 
-                                           form_sctype_ref = input$form_sctype_selectref, 
-                                           form_sctype_tissue = input$form_sctype_tissue,
-                                           form_sctype_scaleassay = input$form_sctype_scaleassay ) )
+observeEvent(input$ccc_input_submit,{
+  form_data <- switch(input$ccc_form_choice,
+                      "form_cellchat" = list(form_type = "CellChat", 
+                                             form_cellchat_idents = input$form_cellchat_idents, 
+                                             form_cellchat_refdb = input$form_cellchat_refdb, 
+                                             form_cellchat_ncore = input$form_cellchat_ncore),
+                      "form_scsignalr" = list(form_type = "SingleCellSignalR", 
+                                              form_scsignalr_idents = input$form_scsignalr_idents, 
+                                              form_scsignalr_refdb = input$form_scsignalr_refdb,
+                                              form_scsignalr_workdir = input$form_scsignalr_workdir ) )
   
   if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
-    output$annotcell_form_data <- renderPrint({ "No combined datasets was detected." })
+    output$ccc_form_data <- renderPrint({ "No combined datasets was detected." })
   } else {
-    output$annotcell_form_data <- renderPrint(form_data)
+    output$ccc_form_data <- renderPrint(form_data)
   }
   
-  if(form_data$form_type == "SingleR"){
-    
-    if(form_data$form_singler_ref == "BlueprintEncodeData") {
-      cell.ref <- BlueprintEncodeData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "DatabaseImmuneCellExpressionData"){
-      cell.ref <- DatabaseImmuneCellExpressionData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "HumanPrimaryCellAtlasData"){
-      cell.ref <- HumanPrimaryCellAtlasData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "ImmGenData"){
-      cell.ref <- ImmGenData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "MonacoImmuneData"){ 
-      cell.ref <- MonacoImmuneData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "MouseRNAseqData"){ 
-      cell.ref <- MouseRNAseqData(ensembl=F, cell.ont="nonna")
-    }else if(form_data$form_singler_ref == "NovershternHematopoieticData"){
-      cell.ref <- NovershternHematopoieticData(ensembl=F, cell.ont="nonna")
-    }
-    
-    if(form_data$form_singler_labeltype == "label.main") label.type = "label.main"
-    if(form_data$form_singler_labeltype == "label.fine") label.type = "label.fine"
-    
-    
-    multicorePara <- BiocParallel::MulticoreParam(workers = as.integer(form_data$form_singler_ncore) )
-    celltype.predict <- SingleR(test = GetAssayData(rv$data.combined), ref = cell.ref, labels = colData(cell.ref)[,label.type],
-                                clusters = rv$data.combined@meta.data$seurat_clusters, assay.type.test=1, BPPARAM=multicorePara)
-    
-    celltype.predict <- as.data.frame(celltype.predict)
-    celltype.predict$cluster <- rownames(celltype.predict)
-    rv$data.combined[["identity_singler"]] <- sapply(rv$data.combined@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
-    
-    saveRDS(rv$data.combined, file = file.path(rv$output_dir,  '1_Rds/seurat.filtered.integrated.singler_annot.rds'))
-    
-    output$annotcell_vis_clustering <- renderPlot({
-      Idents(rv$data.combined) <- "identity_singler"
-      SCpubr::do_DimPlot(sample = rv$data.combined, reduction = 'umap', label=T )
-    })
+  if(form_data$form_type == "CellChat"){
+      
+    ## form_cellchat_idents, choice of idents of Seurat object
+      if(form_data$form_cellchat_idents == "Cell clusters") {
+        Idents(rv$data.combined = 'seurat_clusters')
+      }else if(form_data$form_cellchat_idents == "Cell type identity"){
+        Idents(rv$data.combined = 'identity_singler')
+      }
+      
+    ## form_cellchat_refdb, choice of database of ligand-receptor interaction
+      if(form_data$form_cellchat_refdb == "CellChatDB.human"){ 
+            lrdb = CellChatDB.human
+        }else if(form_data$form_cellchat_refdb == "CellChatDB.mouse"){
+            lrdb = CellChatDB.mouse
+        }
+      
+    ## parallel computation setting
+      future::plan("multiprocess", workers = form_data$form_cellchat_ncore )
+      options(future.globals.maxSize = 100 * 1024^3)
+      options(future.rng.onMisuse="ignore")
+      
+    ## CellChat pipeline  
+      data.input <- GetAssayData(rv$data.combined, assay = "RNA", slot = "data") # normalized data matrix
+      labels <- Idents(rv$data.combined)
+      meta <- data.frame(labels = (labels), row.names = names(labels))
+      meta$labels <- paste0('C_', meta$labels)
+      
+      cellchat.obj <- createCellChat(object = data.input, meta = meta, group.by = 'labels')
+      
+      cellchat.obj@DB <- lrdb ## set DB
+      
+      cellchat.obj <- subsetData(cellchat.obj) # essential
+      
+      cellchat.obj <- identifyOverExpressedGenes(cellchat.obj)
+      cellchat.obj <- identifyOverExpressedInteractions(cellchat.obj)
+      cellchat.obj <- computeCommunProb(cellchat.obj)  # Inference of cell-cell communication network
+      cellchat.obj <- filterCommunication(cellchat.obj, min.cells = 20) # Filter out the cell-cell communication if there are only few number of cells in certain cell groups
+      cellchat.obj <- computeCommunProbPathway(cellchat.obj) # Infer the cell-cell communication at a signaling pathway level
+      cellchat.obj <- aggregateNet(cellchat.obj)
+      
+      ## save cellchat resulting objects
+      saveRDS(cellchat.obj, file = file.path(rv$output_dir,  '5_CCC/CellChat_obj.rds'))
+      
+      ## save LR-pairs probability table
+      df.net <- subsetCommunication(cellchat.obj, thresh=1)
+      write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_LRPairs.tsv" ), quote=F, sep='\t', row.names=F, col.names=T)
+      
+      ## save signaling pathway probability table
+      df.net <- subsetCommunication(cellchat.obj, slot.name = "netP", thresh=1)
+      write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_signalPathway.tsv"), quote=F, sep='\t', row.names=F, col.names=T)
+      
+      output$ccc_vis_netCount <- renderPlot({
+         netVisual_circle(cellchat.obj@net$count, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Number of interactions")
+      })
+      
+      output$ccc_vis_netWeight <- renderPlot({
+        netVisual_circle(cellchat.obj@net$weight, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Interaction weights/strength")
+      })
     
   }else if(form_data$form_type == "ScType"){
-    output$annotcell_vis_clustering <- renderPlot({
+    output$ccc_vis_clustering <- renderPlot({
       "This method has not been defined."
     })
   }
@@ -948,12 +970,15 @@ observeEvent(input$annotcell_input_submit,{
 })
 
 ##* ******************************
-##* tab_ccc module, tabpanel of 'Input'
+##* tab_ccc module, tabpanel of 'Viewer'
 ##* 
 
 
+
+
+
 ##* ******************************
-##* tab_ccc module, tabpanel of 'Input'
+##* tab_ccc module, tabpanel of 'Report'
 ##* 
 
 

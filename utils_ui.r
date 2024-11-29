@@ -537,7 +537,7 @@ tab_annotatecell <- tabItem(
 tab_ccc <- tabItem(
   tabName = "ccc",
   h2("Cell-Cell Communication"),
-  p("Inference and visualization of different types of cell-cell interactions."),
+  p("Inference and visualization of intercellular communications between single cells."),
   # 
   tabBox(title = "", width = 12,
          
@@ -549,17 +549,16 @@ tab_ccc <- tabItem(
                            
                            # 单选控件（横向排列）
                            radioButtons("ccc_form_choice", "Choose one pipeline:",
-                                        choices = c("SingleR" = "form_singler",
+                                        choices = c("CellChat" = "form_cellchat",
                                                     # "AUCell" = "form_aucell",
-                                                    "ScType" = "form_sctype"),
-                                        selected = "form_singler",
+                                                    "SingleCellSignalR" = "form_scsignalr"),
+                                        selected = "form_cellchat",
                                         inline = TRUE),  # 设置为横向排列
                            
                            # 动态表单区域
                            uiOutput("ccc_dynamic_form"),
                            
                            br(),
-                           shinyjs::useShinyjs(),
                            actionButton("ccc_input_submit", "Submit", class = "btn-danger")
                            
                     ), # left-column end
@@ -633,17 +632,16 @@ tab_trajectory <- tabItem(
                            
                            # 单选控件（横向排列）
                            radioButtons("trajectory_form_choice", "Choose one pipeline:",
-                                        choices = c("SingleR" = "form_singler",
+                                        choices = c("Monocle" = "form_monocle",
                                                     # "AUCell" = "form_aucell",
-                                                    "ScType" = "form_sctype"),
-                                        selected = "form_singler",
+                                                    "Slingshot" = "form_slingshot"),
+                                        selected = "form_monocle",
                                         inline = TRUE),  # 设置为横向排列
                            
                            # 动态表单区域
                            uiOutput("trajectory_dynamic_form"),
                            
                            br(),
-                           shinyjs::useShinyjs(),
                            actionButton("trajectory_input_submit", "Submit", class = "btn-danger")
                            
                     ), # left-column end

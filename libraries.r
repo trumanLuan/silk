@@ -7,6 +7,7 @@ library(shinyjs)
 library(fs)
 
 library(BiocParallel)
+library(future) # for parallel computation in CellChat
 
 library(plotly)
 library(DT)
@@ -29,25 +30,25 @@ library(Seurat)
 library(scDblFinder)
 library(scds) # for predicting doublets
 
-library(SingleR)
-library(celldex)
-
+library(SingleR) ## for cell type annotation
+library(celldex) ## reference db of cell type atlas
 library(AUCell) # cell type annotatino
 
 library(CellChat) # infer cell-cell communication # fail to install in win
+library(SingleCellSignalR)
 # library(liana) # infer cell-cell interaction # fail to install in win
 
 # library(infercnv)  # infercnv
-library(slingshot) # for trajectory
-library(monocle) # for trajectory
 library(copykat) # infer cnv
 library(CaSpER) # identifies and visualizes CNV events
+
+library(slingshot) # for trajectory
+library(monocle) # for trajectory
+
 # library(SCEVAN)
 library(SCENIC)
 
 library(ROGUE) # evaluate cluster purity
-
-
 
 library(clusterProfiler) # for functiontal enrichment
 library(msigdbr)

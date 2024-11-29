@@ -795,10 +795,6 @@ observeEvent(input$annotcell_input_submit,{
       })
   }
   
-  
-  
-  
-  
 })
 
 
@@ -845,6 +841,111 @@ observeEvent(input$annotcell_viewer_gene_submit,{
 ##* tab_ccc module, tabpanel of 'Input'
 ##* 
 
+output$ccc_dynamic_form <- renderUI({
+  # 根据用户选择动态生成内容
+  switch(input$ccc_form_choice,
+         "form_cellchat" = {
+           tagList(
+             # textInput("input_a1", "输入字段 A1："),
+             selectInput("form_cellchat_idents",
+                         "Set the idents:",
+                         choices = c("Cell clusters", "Cell type identity")
+             ),
+             selectInput("form_cellchat_refdb",
+                         "Set the ligand-receptor interaction database:",
+                         choices = c("label.main", "label.fine")
+             ),
+             numericInput("form_cellchat_ncore", "N of Cores:", value = 4)
+           )
+         },
+         
+         "form_scsignalr" = {
+           tagList(
+             # dateInput("input_c1", "日期字段 C1："),
+             selectInput("form_scsignalr_idents",
+                         "Set the idents:",
+                         choices = c("Cell clusters", "Cell type identity", 'Customized' )
+             ),
+             selectInput("form_scsignalr_refdb",
+                         "Set the ligand-receptor interaction database:",
+                         choices = c("LRdb", "Customized")
+             ),
+             h4("Set a working directory for SingleCellSignalR:"),
+             shinyDirButton(id = "form_scsignalr_workdir",
+                         label = "SingleCellSignalR Working Dir",
+                         title = "Set SingleCellSignalR Working Dir"
+             )
+             
+           )
+         }
+  )
+})
+
+
+##* actionButton submit events
+##* 
+
+observeEvent(input$annotcell_input_submit,{
+  form_data <- switch(input$form_choice,
+                      "form_singler" = list(form_type = "SingleR", 
+                                            form_singler_ref = input$form_singler_selectref, 
+                                            form_singler_labeltype = input$form_singler_selectlabel, 
+                                            form_singler_ncore = input$form_singler_ncore),
+                      "form_sctype" = list(form_type = "ScType", 
+                                           form_sctype_ref = input$form_sctype_selectref, 
+                                           form_sctype_tissue = input$form_sctype_tissue,
+                                           form_sctype_scaleassay = input$form_sctype_scaleassay ) )
+  
+  if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
+    output$annotcell_form_data <- renderPrint({ "No combined datasets was detected." })
+  } else {
+    output$annotcell_form_data <- renderPrint(form_data)
+  }
+  
+  if(form_data$form_type == "SingleR"){
+    
+    if(form_data$form_singler_ref == "BlueprintEncodeData") {
+      cell.ref <- BlueprintEncodeData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "DatabaseImmuneCellExpressionData"){
+      cell.ref <- DatabaseImmuneCellExpressionData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "HumanPrimaryCellAtlasData"){
+      cell.ref <- HumanPrimaryCellAtlasData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "ImmGenData"){
+      cell.ref <- ImmGenData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "MonacoImmuneData"){ 
+      cell.ref <- MonacoImmuneData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "MouseRNAseqData"){ 
+      cell.ref <- MouseRNAseqData(ensembl=F, cell.ont="nonna")
+    }else if(form_data$form_singler_ref == "NovershternHematopoieticData"){
+      cell.ref <- NovershternHematopoieticData(ensembl=F, cell.ont="nonna")
+    }
+    
+    if(form_data$form_singler_labeltype == "label.main") label.type = "label.main"
+    if(form_data$form_singler_labeltype == "label.fine") label.type = "label.fine"
+    
+    
+    multicorePara <- BiocParallel::MulticoreParam(workers = as.integer(form_data$form_singler_ncore) )
+    celltype.predict <- SingleR(test = GetAssayData(rv$data.combined), ref = cell.ref, labels = colData(cell.ref)[,label.type],
+                                clusters = rv$data.combined@meta.data$seurat_clusters, assay.type.test=1, BPPARAM=multicorePara)
+    
+    celltype.predict <- as.data.frame(celltype.predict)
+    celltype.predict$cluster <- rownames(celltype.predict)
+    rv$data.combined[["identity_singler"]] <- sapply(rv$data.combined@meta.data$seurat_clusters, function(x) subset(celltype.predict, cluster==x)$labels)
+    
+    saveRDS(rv$data.combined, file = file.path(rv$output_dir,  '1_Rds/seurat.filtered.integrated.singler_annot.rds'))
+    
+    output$annotcell_vis_clustering <- renderPlot({
+      Idents(rv$data.combined) <- "identity_singler"
+      SCpubr::do_DimPlot(sample = rv$data.combined, reduction = 'umap', label=T )
+    })
+    
+  }else if(form_data$form_type == "ScType"){
+    output$annotcell_vis_clustering <- renderPlot({
+      "This method has not been defined."
+    })
+  }
+  
+})
 
 ##* ******************************
 ##* tab_ccc module, tabpanel of 'Input'

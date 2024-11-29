@@ -825,9 +825,6 @@ observeEvent(input$annotcell_viewer_gene_submit,{
           "The Gene not identified in your data."
         })
     }
-      
-
-      
   }
 })
 
@@ -906,9 +903,9 @@ observeEvent(input$ccc_input_submit,{
       
     ## form_cellchat_idents, choice of idents of Seurat object
       if(form_data$form_cellchat_idents == "Cell clusters") {
-        Idents(rv$data.combined = 'seurat_clusters')
+        Idents(rv$data.combined ) = 'seurat_clusters'
       }else if(form_data$form_cellchat_idents == "Cell type identity"){
-        Idents(rv$data.combined = 'identity_singler')
+        Idents(rv$data.combined)  = 'identity_singler'
       }
       
     ## form_cellchat_refdb, choice of database of ligand-receptor interaction
@@ -919,7 +916,7 @@ observeEvent(input$ccc_input_submit,{
         }
       
     ## parallel computation setting
-      future::plan("multiprocess", workers = form_data$form_cellchat_ncore )
+      future::plan("multicore", workers = form_data$form_cellchat_ncore )
       options(future.globals.maxSize = 100 * 1024^3)
       options(future.rng.onMisuse="ignore")
       
@@ -948,20 +945,29 @@ observeEvent(input$ccc_input_submit,{
       ## save LR-pairs probability table
       df.net <- subsetCommunication(cellchat.obj, thresh=1)
       write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_LRPairs.tsv" ), quote=F, sep='\t', row.names=F, col.names=T)
+      output$ccc_table_lrPair <- renderDataTable({
+        datatable(df.net)
+      })
       
       ## save signaling pathway probability table
       df.net <- subsetCommunication(cellchat.obj, slot.name = "netP", thresh=1)
       write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_signalPathway.tsv"), quote=F, sep='\t', row.names=F, col.names=T)
+      output$ccc_table_signalPathway <- renderDataTable({
+        datatable(df.net)
+      })
       
+      ## render cell-cell interaction network between cell clusters by counts
       output$ccc_vis_netCount <- renderPlot({
          netVisual_circle(cellchat.obj@net$count, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Number of interactions")
       })
       
+      ## render cell-cell interaction network between cell clusters by weights
       output$ccc_vis_netWeight <- renderPlot({
         netVisual_circle(cellchat.obj@net$weight, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Interaction weights/strength")
       })
+      
     
-  }else if(form_data$form_type == "ScType"){
+  }else if(form_data$form_type == "SingleCellSignalR"){
     output$ccc_vis_clustering <- renderPlot({
       "This method has not been defined."
     })

@@ -580,17 +580,15 @@ tab_ccc <- tabItem(
                   fluidRow(
                     column(6,
                            br(),
+                           h4("Number of interactions"),
+                           plotOutput("ccc_vis_netCount")
                            
-                           plotOutput("ccc_vis_netCount"),
-                           plotOutput("ccc_vis_netWeight")
                     ),
                     column(6,
                            br(),
                            
-                           h4("Gene-based map:"),
-                           textInput("ccc_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-                           plotOutput("ccc_vis_clustering_selectgene"),
-                           plotOutput("ccc_vis_clustering_selectgene_boxplot")
+                           h4("Interaction weights/strength"),
+                           plotOutput("ccc_vis_netWeight")
                     )
                   ), 
                   fluidRow(

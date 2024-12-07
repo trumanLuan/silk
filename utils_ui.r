@@ -495,21 +495,21 @@ tab_annotatecell <- tabItem(
                             )
                   )
                   
-         ),
-         
-         tabPanel("Report", 
-                  fluidRow(
-                    box(
-                      title = "",
-                      status = "primary", solidHeader = TRUE, width = 2, 
-                      style = "height: 550px; overflow-y: auto;",
-                      actionButton("annotcell_generate_table", "Show", class = "btn-danger"),
-                      dataTableOutput("annotcell_table_results")
-                    )
-                    
-                  )
-                  
          )
+         
+         # tabPanel("Report", 
+         #          fluidRow(
+         #            box(
+         #              title = "",
+         #              status = "primary", solidHeader = TRUE, width = 2, 
+         #              style = "height: 550px; overflow-y: auto;",
+         #              actionButton("annotcell_generate_table", "Show", class = "btn-danger"),
+         #              dataTableOutput("annotcell_table_results")
+         #            )
+         #            
+         #          )
+         #          
+         # )
   ) # tabBox end.
   
 )
@@ -594,31 +594,33 @@ tab_ccc <- tabItem(
                   fluidRow(
                       column(12, 
                              br(),
+                             h4("cell-cell communication network"),
                              dataTableOutput("ccc_table_lrPair")
                              )
                   ),
                   fluidRow(
                     column(12, 
                            br(),
+                           h4("cellular communication by signaling pathway"),
                            dataTableOutput("ccc_table_signalPathway")
                     )
                   )
                   
-         ),
-         
-         tabPanel("Report", 
-                  fluidRow(
-                    box(
-                      title = "",
-                      status = "primary", solidHeader = TRUE, width = 2, 
-                      style = "height: 550px; overflow-y: auto;",
-                      actionButton("ccc_generate_table", "Show", class = "btn-danger"),
-                      dataTableOutput("ccc_table_results")
-                    )
-                    
-                  )
-                  
          )
+         
+         # tabPanel("Report", 
+         #          fluidRow(
+         #            box(
+         #              title = "",
+         #              status = "primary", solidHeader = TRUE, width = 2, 
+         #              style = "height: 550px; overflow-y: auto;",
+         #              actionButton("ccc_generate_table", "Show", class = "btn-danger"),
+         #              dataTableOutput("ccc_table_results")
+         #            )
+         #            
+         #          )
+         #          
+         # )
   ) # tabBox end.
   
   )
@@ -687,21 +689,21 @@ tab_trajectory <- tabItem(
                     )
                   )
                   
-         ),
-         
-         tabPanel("Report", 
-                  fluidRow(
-                    box(
-                      title = "",
-                      status = "primary", solidHeader = TRUE, width = 2, 
-                      style = "height: 550px; overflow-y: auto;",
-                      actionButton("trajectory_generate_table", "Show", class = "btn-danger"),
-                      dataTableOutput("trajectory_table_results")
-                    )
-                    
-                  )
-                  
          )
+         
+         # tabPanel("Report", 
+         #          fluidRow(
+         #            box(
+         #              title = "",
+         #              status = "primary", solidHeader = TRUE, width = 2, 
+         #              style = "height: 550px; overflow-y: auto;",
+         #              actionButton("trajectory_generate_table", "Show", class = "btn-danger"),
+         #              dataTableOutput("trajectory_table_results")
+         #            )
+         #            
+         #          )
+         #          
+         # )
   ) # tabBox end.  
 )
 

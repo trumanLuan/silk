@@ -831,6 +831,9 @@ observeEvent(input$annotcell_viewer_gene_submit,{
 
 ##* ******************************
 ##** tab_annotatecell: tabPanel of 'Report'
+##* undetermined @2024/11/29
+##* 
+
 
 
 
@@ -950,10 +953,10 @@ observeEvent(input$ccc_input_submit,{
       })
       
       ## save signaling pathway probability table
-      df.net <- subsetCommunication(cellchat.obj, slot.name = "netP", thresh=1)
-      write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_signalPathway.tsv"), quote=F, sep='\t', row.names=F, col.names=T)
+      df.netp <- subsetCommunication(cellchat.obj, slot.name = "netP", thresh=1)
+      write.table(df.netp, file.path(rv$output_dir, "5_CCC/CellChat_results_signalPathway.tsv"), quote=F, sep='\t', row.names=F, col.names=T)
       output$ccc_table_signalPathway <- renderDataTable({
-        datatable(df.net)
+        datatable(df.netp)
       })
       
       ## render cell-cell interaction network between cell clusters by counts
@@ -977,10 +980,7 @@ observeEvent(input$ccc_input_submit,{
 
 ##* ******************************
 ##* tab_ccc module, tabpanel of 'Viewer'
-##* 
-
-
-
+##* Viewer functions are done in the above function.
 
 
 ##* ******************************
@@ -988,8 +988,53 @@ observeEvent(input$ccc_input_submit,{
 ##* 
 
 
+##* ******************************
+##* tab_trajectory module, tabpanel of 'Input'
+##* 
+
+output$ccc_dynamic_form <- renderUI({
+  # 根据用户选择动态生成内容
+  switch(input$trajectory_form_choice,
+         "form_monocle" = {
+           tagList(
+             # textInput("input_a1", "输入字段 A1："),
+             selectInput("form_cellchat_idents",
+                         "Set the idents:",
+                         choices = c("Cell clusters", "Cell type identity", 'Customized')
+             ),
+             selectInput("form_cellchat_refdb",
+                         "Set the ligand-receptor interaction database:",
+                         choices = c("CellChatDB.human", "CellChatDB.mouse", "Customized")
+             ),
+             numericInput("form_cellchat_ncore", "N of Cores:", value = 4)
+           )
+         },
+         
+         "form_slingshot" = {
+           tagList(
+             # dateInput("input_c1", "日期字段 C1："),
+             selectInput("form_scsignalr_idents",
+                         "Set the idents:",
+                         choices = c("Cell clusters", "Cell type identity", 'Customized' )
+             ),
+             selectInput("form_scsignalr_refdb",
+                         "Set the ligand-receptor interaction database:",
+                         choices = c("LRdb", "Customized")
+             ),
+             h4("Set a working directory for SingleCellSignalR:"),
+             shinyDirButton(id = "form_scsignalr_workdir",
+                            label = "SingleCellSignalR Working Dir",
+                            title = "Set SingleCellSignalR Working Dir"
+             )
+             
+           )
+         }
+  )
+})
 
 
+##* actionButton submit events
+##* 
 
 
 } ## server end

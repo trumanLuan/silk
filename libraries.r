@@ -52,3 +52,7 @@ library(ROGUE) # evaluate cluster purity
 
 library(clusterProfiler) # for functiontal enrichment
 library(msigdbr)
+
+
+library(magrittr) ## for running python code in R env
+

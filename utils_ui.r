@@ -30,17 +30,15 @@ tab_quickStart <- tabItem(
 )
 
 
-
-##* **********
-tab_dashboard <- tabItem(
-  tabName = "dashboard", fluidRow(
-    box(title = "Controls",selectInput("reduction", "Select Dimensionality Reduction Method:",
-                                       choices = c("PCA", "UMAP", "tSNE")), actionButton("update", "Update View") ),
-    
-    box(title = "Cluster Data", dataTableOutput("clusterTable") )
-  )
-)
-
+# ##* **********
+# tab_dashboard <- tabItem(
+#   tabName = "dashboard", fluidRow(
+#     box(title = "Controls",selectInput("reduction", "Select Dimensionality Reduction Method:",
+#                                        choices = c("PCA", "UMAP", "tSNE")), actionButton("update", "Update View") ),
+#     
+#     box(title = "Cluster Data", dataTableOutput("clusterTable") )
+#   )
+# )
 
 
 ##* **********
@@ -672,17 +670,20 @@ tab_trajectory <- tabItem(
                   fluidRow(
                     column(6,
                            br(),
+                           h4("Constructing single cell trajectories"),
+                           plotOutput("trajectory_vis_clustering"),
                            
-                           plotOutput("trajectory_vis_clustering")
-                    ),
+                           h4("Mapping pseudotime onto Seurat clustering"),
+                           plotOutput("trajectory_vis_pseudotime_in_seuratobject"),
+                    ), # end of column 1
                     column(6,
                            br(),
                            
-                           h4("Gene "),
+                           h4("Differential genes along pseudotime"),
                            textInput("trajectory_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
                            plotOutput("trajectory_vis_clustering_selectgene"),
                            plotOutput("trajectory_vis_clustering_selectgene_boxplot")
-                    )
+                    ) # end of column 2
                   )
                   
          )

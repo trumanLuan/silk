@@ -139,20 +139,20 @@ tab_load <- tabItem(
                )
              )
              
-    ), # end of tabPanel: SeuratObject
+    ) # end of tabPanel: SeuratObject
     
-    tabPanel("Interoperability", 
-             tags$div(
-               tags$p(style = "font-size: 16px; font-weight: bold;text-decoration: underline;", 
-                      "Conversion between Seurat objects, SingleCellExperiment objects, and anndata objects.")
-             ),
-             br(),
-             
-             checkboxGroupInput("checkboxes2", "Choose options:",
-                                choices = c("Option A", "Option B", "Option C")),
-             dateRangeInput("dates2", "Select date range:"),
-             plotOutput("plot2")
-    ) # end of tabPanel: Interoperability
+    # tabPanel("Interoperability", 
+    #          tags$div(
+    #            tags$p(style = "font-size: 16px; font-weight: bold;text-decoration: underline;", 
+    #                   "Conversion between Seurat objects, SingleCellExperiment objects, and anndata objects.")
+    #          ),
+    #          br(),
+    #          
+    #          checkboxGroupInput("checkboxes2", "Choose options:",
+    #                             choices = c("Option A", "Option B", "Option C")),
+    #          dateRangeInput("dates2", "Select date range:"),
+    #          plotOutput("plot2")
+    # ) # end of tabPanel: Interoperability
   ) # end of tabBox
 ) # end of tabItem
 
@@ -664,10 +664,6 @@ tab_trajectory <- tabItem(
                            h4("提交的表单内容:"),
                            verbatimTextOutput("trajectory_form_data"),
                            
-                           # 打印分析过程与结果
-                           h4("统计分析结果:"),
-                           verbatimTextOutput("trajectory_form_submit_result")
-                           
                     )
                   )
          ),
@@ -682,7 +678,7 @@ tab_trajectory <- tabItem(
                     column(6,
                            br(),
                            
-                           h4("Gene-based map:"),
+                           h4("Gene "),
                            textInput("trajectory_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
                            plotOutput("trajectory_vis_clustering_selectgene"),
                            plotOutput("trajectory_vis_clustering_selectgene_boxplot")

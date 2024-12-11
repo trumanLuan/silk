@@ -981,6 +981,7 @@ observeEvent(input$ccc_input_submit,{
 ##* ******************************
 ##* tab_ccc module, tabpanel of 'Viewer'
 ##* Viewer functions are done in the above function.
+##* 
 
 
 ##* ******************************
@@ -992,23 +993,25 @@ observeEvent(input$ccc_input_submit,{
 ##* tab_trajectory module, tabpanel of 'Input'
 ##* 
 
-output$ccc_dynamic_form <- renderUI({
+output$trajectory_dynamic_form <- renderUI({
   # 根据用户选择动态生成内容
   switch(input$trajectory_form_choice,
          "form_monocle" = {
            tagList(
              # textInput("input_a1", "输入字段 A1："),
-             selectInput("form_cellchat_idents",
-                         "Set the idents:",
-                         choices = c("Cell clusters", "Cell type identity", 'Customized')
-             ),
-             selectInput("form_cellchat_refdb",
-                         "Set the ligand-receptor interaction database:",
-                         choices = c("CellChatDB.human", "CellChatDB.mouse", "Customized")
-             ),
-             numericInput("form_cellchat_ncore", "N of Cores:", value = 4)
+             selectInput("form_monocle_cellcluster",
+                         "Select cell cluster used to build trajectory:",
+                         choices = form_monocle_cellcluster_dynamic,
+                         multiple = TRUE
+             ), # selectInput end
+             selectInput("form_monocle_reduction_method",
+                         "Select reduction method in monocle clustering:",
+                         choices = c("UMAP", "tSNE", "PCA", "LSI", "Aligned"),
+                         selected = c("UMAP")
+             ), #selectInput end
+             textInput("form_monocle_key", "prefix of output") # textInput end
            )
-         },
+         }, # form_monocle end.
          
          "form_slingshot" = {
            tagList(
@@ -1026,15 +1029,117 @@ output$ccc_dynamic_form <- renderUI({
                             label = "SingleCellSignalR Working Dir",
                             title = "Set SingleCellSignalR Working Dir"
              )
-             
+
            )
-         }
-  )
+         } # form_slingshot end
+  ) # end of switch function
 })
 
+observeEvent(input$trajectory_form_choice, {
+    if(input$trajectory_form_choice =="form_monocle"){
+      form_monocle_cellcluster_dynamic <<- unique(rv@meta.data$identity_singler)
+      
+      # update selectInput choices
+      updateSelectInput(session, "form_monocle_cellcluster", 
+                        choices = form_monocle_cellcluster_dynamic)
+    } # end of if function
+})
 
 ##* actionButton submit events
 ##* 
+
+observeEvent(input$trajectory_input_submit,{
+    form_data <- switch(input$trajectory_form_choice,
+                        "form_monocle" = list(form_type = "Monocle3", 
+                                              form_monocle_cellcluster = input$form_monocle_cellcluster, 
+                                              form_monocle_reduction_method = input$form_monocle_reduction_method, 
+                                              form_monocle_key = input$form_monocle_key),
+                        "form_slingshot" = list(form_type = "Slingshot", 
+                                                form_scsignalr_idents = input$form_scsignalr_idents, 
+                                                form_scsignalr_refdb = input$form_scsignalr_refdb,
+                                                form_scsignalr_workdir = input$form_scsignalr_workdir ) )
+    
+    if(is.null(rv$data.combined) || length(rv$data.combined) == 0){
+      output$ccc_form_data <- renderPrint({ "No combined datasets was detected." })
+    } else {
+      output$ccc_form_data <- renderPrint(form_data)
+    }
+    
+    if(form_data$form_type == "CellChat"){
+      
+      ## form_cellchat_idents, choice of idents of Seurat object
+      if(form_data$form_cellchat_idents == "Cell clusters") {
+        Idents(rv$data.combined ) = 'seurat_clusters'
+      }else if(form_data$form_cellchat_idents == "Cell type identity"){
+        Idents(rv$data.combined)  = 'identity_singler'
+      }
+      
+      ## form_cellchat_refdb, choice of database of ligand-receptor interaction
+      if(form_data$form_cellchat_refdb == "CellChatDB.human"){ 
+        lrdb = CellChatDB.human
+      }else if(form_data$form_cellchat_refdb == "CellChatDB.mouse"){
+        lrdb = CellChatDB.mouse
+      }
+      
+      ## parallel computation setting
+      future::plan("multicore", workers = form_data$form_cellchat_ncore )
+      options(future.globals.maxSize = 100 * 1024^3)
+      options(future.rng.onMisuse="ignore")
+      
+      ## CellChat pipeline  
+      data.input <- GetAssayData(rv$data.combined, assay = "RNA", slot = "data") # normalized data matrix
+      labels <- Idents(rv$data.combined)
+      meta <- data.frame(labels = (labels), row.names = names(labels))
+      meta$labels <- paste0('C_', meta$labels)
+      
+      cellchat.obj <- createCellChat(object = data.input, meta = meta, group.by = 'labels')
+      
+      cellchat.obj@DB <- lrdb ## set DB
+      
+      cellchat.obj <- subsetData(cellchat.obj) # essential
+      
+      cellchat.obj <- identifyOverExpressedGenes(cellchat.obj)
+      cellchat.obj <- identifyOverExpressedInteractions(cellchat.obj)
+      cellchat.obj <- computeCommunProb(cellchat.obj)  # Inference of cell-cell communication network
+      cellchat.obj <- filterCommunication(cellchat.obj, min.cells = 20) # Filter out the cell-cell communication if there are only few number of cells in certain cell groups
+      cellchat.obj <- computeCommunProbPathway(cellchat.obj) # Infer the cell-cell communication at a signaling pathway level
+      cellchat.obj <- aggregateNet(cellchat.obj)
+      
+      ## save cellchat resulting objects
+      saveRDS(cellchat.obj, file = file.path(rv$output_dir,  '5_CCC/CellChat_obj.rds'))
+      
+      ## save LR-pairs probability table
+      df.net <- subsetCommunication(cellchat.obj, thresh=1)
+      write.table(df.net, file.path(rv$output_dir, "5_CCC/CellChat_results_LRPairs.tsv" ), quote=F, sep='\t', row.names=F, col.names=T)
+      output$ccc_table_lrPair <- renderDataTable({
+        datatable(df.net)
+      })
+      
+      ## save signaling pathway probability table
+      df.netp <- subsetCommunication(cellchat.obj, slot.name = "netP", thresh=1)
+      write.table(df.netp, file.path(rv$output_dir, "5_CCC/CellChat_results_signalPathway.tsv"), quote=F, sep='\t', row.names=F, col.names=T)
+      output$ccc_table_signalPathway <- renderDataTable({
+        datatable(df.netp)
+      })
+      
+      ## render cell-cell interaction network between cell clusters by counts
+      output$ccc_vis_netCount <- renderPlot({
+        netVisual_circle(cellchat.obj@net$count, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Number of interactions")
+      })
+      
+      ## render cell-cell interaction network between cell clusters by weights
+      output$ccc_vis_netWeight <- renderPlot({
+        netVisual_circle(cellchat.obj@net$weight, vertex.weight = as.numeric(table(cellchat.obj@idents)), weight.scale = T, label.edge= F, title.name = "Interaction weights/strength")
+      })
+      
+      
+    }else if(form_data$form_type == "SingleCellSignalR"){
+      output$ccc_vis_clustering <- renderPlot({
+        "This method has not been defined."
+      })
+    }
+  
+}) # end of observeEvent
 
 
 } ## server end

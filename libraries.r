@@ -44,6 +44,7 @@ library(CaSpER) # identifies and visualizes CNV events
 
 library(slingshot) # for trajectory
 library(monocle) # for trajectory
+library(monocle3)
 library(tradeSeq) # for identifying temporally dynamic genes in slingshot pipeline
 
 # library(SCEVAN)

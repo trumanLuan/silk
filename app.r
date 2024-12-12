@@ -34,7 +34,7 @@ sidebar <- dashboardSidebar(
   sidebarMenu(
     
     menu_quickStart,
-    menu_dashboard, 
+    # menu_dashboard, 
     menu_pipe,
     menu_userguide
     
@@ -1030,7 +1030,7 @@ output$trajectory_dynamic_form <- renderUI({
 observeEvent(input$trajectory_form_choice, {
     if(input$trajectory_form_choice =="form_monocle"){
         if(!is.null(rv$data.combined)){
-            form_monocle_cellcluster_dynamic <<- unique(rv$data.combined@meta.data$identity_singler)
+            form_monocle_cellcluster_dynamic <<- colnames(rv$data.combined@meta.data)
         }else{
             form_monocle_cellcluster_dynamic <<- "Select cell cluster..."
         }
@@ -1093,9 +1093,9 @@ observeEvent(input$trajectory_input_submit,{
         #map pseudotime
         monocle.object <- cluster_cells(monocle.object, reduction_method = form_data$form_monocle_reduction_method, verbose = T)
         monocle.object = learn_graph(monocle.object)
-        # monocle.object = order_cells(monocle.object, reduction_method = "UMAP")
+        monocle.object = order_cells(monocle.object, reduction_method = "UMAP", root_pr_nodes = root_pr_nodes='Y_21')
         
-        output$trajectory_vis_clustering <- renderPlot({
+        output$trajectory_vis_clustering1 <- renderPlot({
            plot_cells(monocle.object, color_cells_by = "pseudotime", show_trajectory_graph = T)
         })
         
@@ -1106,7 +1106,7 @@ observeEvent(input$trajectory_input_submit,{
           col.name = "monocle_pseudotime"
         )
         
-        output$trajectory_vis_clustering <- renderPlot({
+        output$trajectory_vis_clustering2 <- renderPlot({
           FeaturePlot(object = rv$data.combined, features = "monocle_pseudotime", pt.size = 0.1, reduction = 'umap') & scale_color_viridis_c() # plot clusters along pseudotime
         })
         
@@ -1115,7 +1115,60 @@ observeEvent(input$trajectory_input_submit,{
           
     }else if(form_data$form_type == "Slingshot"){
          
-        
+          slingshot.data.input <- rv$data.combined@reductions$umap@cell.embeddings
+          clust.col <- grep(form_data$form_slingshot_cluster, colnames(rv$data.combined@meta.data), value=T)
+          slingshot.clustering <- rv$data.combined@meta.data[,clust.col]
+          slingshot.counts <- as.matrix(rv$data.combined@assays$RNA@counts)
+          
+          ## Run default slingshot lineage identification
+          set.seed(1)
+          lineages <- getLineages(data = slingshot.data.input, clusterLabels = slingshot.clustering)
+          
+          # Define a color pallete to use
+          pal <- c(RColorBrewer::brewer.pal(9, "Set1"), RColorBrewer::brewer.pal(8, "Set2"))
+          
+          # Plot the lineages
+          output$trajectory_vis_clustering1 <- renderPlot({
+              par(mfrow = c(1, 2))
+              plot(slingshot.data.input[, 1:2],  col = pal[slingshot.clustering], cex = 0.5, type = 'p')
+              for (i in unique(slingshot.clustering)) {
+                text(mean(slingshot.data.input[slingshot.clustering == i, 1]), mean(slingshot.data.input[slingshot.clustering == i, 2]), labels = i, font = 2)
+              }
+              plot(slingshot.data.input[, 1:2], col = pal[slingshot.clustering], cex = 0.5, type = 'p')
+              sds <- as.SlingshotDataSet(lineages)
+              lines(sds, lwd = 3, col = "black")
+          })
+          
+          ##* define principal curves
+          curves <- getCurves(lineages, approx_points = 300, thresh = 0.01, stretch = 0.8, allow.breaks = FALSE, shrink = 0.99)
+          # curves
+          curves.sds <- as.SlingshotDataSet(curves)
+          
+          output$trajectory_vis_clustering2 <- renderPlot({
+              plot(slingshot.data.input[, 1:2], col = pal[slingshot.clustering], cex = 0.5, type = 'p')
+              lines(curves.sds, lwd = 3, col = "black")
+          })
+          
+          
+          ##* Finding differentially expressed genes
+          ##* 
+          
+          library(tradeSeq)
+          
+          # Removing some genes to speed up the computations for this tutorial
+          BiocParallel::register(BiocParallel::SerialParam())
+          filt_counts <- slingshot.counts[rowSums(slingshot.counts > 10) > ncol(slingshot.counts)/100, ]
+          dim(filt_counts)
+          
+          sce <- fitGAM(counts = as.matrix(filt_counts), sds = curves.sds)
+          
+          # test for dynamic expression
+          ATres <- associationTest(sce)
+          
+          ## top genes
+          output$trajectory_table_diffgenes <- renderDataTable({
+              datatable(ATres[ATres$pvalue < 0.1,])
+          })
       
     }
   

@@ -17,16 +17,16 @@ options(shiny.maxRequestSize = 1000 * 1024^2) # file limits: 1000 Mb
 
 ##* **********
 tab_quickStart <- tabItem(
-  tabName = "quickStart",
-  h2("Quick Start"),
-  p("This is the user guide for the scRNA-seq Data Analysis platform."),
-  p("Instructions on how to use the application:"),
-  tags$ol(
-    tags$li("Select the dimensionality reduction method from the dropdown."),
-    tags$li("Select the cluster to view from the dropdown."),
-    tags$li("Click the 'Update View' button to refresh the plots and tables.")
-  ),
-  p("For further details, please refer to the documentation.")
+      tabName = "quickStart",
+      h2("Quick Start"),
+      p("This is the user guide for the scRNA-seq Data Analysis platform."),
+      p("Instructions on how to use the application:"),
+      tags$ol(
+        tags$li("Select the dimensionality reduction method from the dropdown."),
+        tags$li("Select the cluster to view from the dropdown."),
+        tags$li("Click the 'Update View' button to refresh the plots and tables.")
+      ),
+      p("For further details, please refer to the documentation.")
 )
 
 
@@ -52,7 +52,6 @@ tab_load <- tabItem(
   tabBox(
     width = 12,
     tabPanel("10X", 
-           
              fluidRow(
                column(6, 
                       tags$div(
@@ -106,12 +105,9 @@ tab_load <- tabItem(
     # ), # end of tabPanel: GEX
     
     tabPanel("SeuratObject", 
-             
              fluidRow(
                column(6, 
                       br(),
-                      
-                      # 文件选择框
                       fileInput("load_seurat_file", 
                                 label = "Choose one file...", 
                                 multiple = FALSE, # 是否允许多文件上传
@@ -128,12 +124,7 @@ tab_load <- tabItem(
                       br(),
                       
                       h4("提交的表单内容:"),
-                      verbatimTextOutput("load_seurat_form_data"),
-                      
-                      # 打印分析过程与结果
-                      h4("加载数据核查结果:"),
-                      verbatimTextOutput("load_seurat_submit_result")
-                      
+                      verbatimTextOutput("load_seurat_form_data")
                )
              )
              
@@ -347,15 +338,15 @@ tab_filter <- tabItem(
                
              ) # fluidRow end. 
              
-             ), # end of tabPanel
-    
-    tabPanel("Customized", 
-             
-             checkboxGroupInput("checkboxes2", "Choose options:",
-                                choices = c("Option A", "Option B", "Option C")),
-             dateRangeInput("dates2", "Select date range:"),
-             plotOutput("plot2")
-             )
+             ) # end of tabPanel
+    # 
+    # tabPanel("Customized", 
+    #          
+    #          checkboxGroupInput("checkboxes2", "Choose options:",
+    #                             choices = c("Option A", "Option B", "Option C")),
+    #          dateRangeInput("dates2", "Select date range:"),
+    #          plotOutput("plot2")
+    #          ) # end of tabpanel 
   ) # tabBox end
   
 )
@@ -425,19 +416,17 @@ tab_find_marker <- tabItem(
 ##* ~~~~~~~~~~~~~~~~
 
 tab_annotatecell <- tabItem(
-  tabName = "annotatecell",
-  h2("Cell Type Annotation"),
-  p("Prediction, viewer and exploration of cell type identity in automatic and manual way."),
-  # 添加具体的UI元素，如图表和表格
-  # 
-  tabBox(title = "", width = 12,
+    tabName = "annotatecell",
+    h2("Cell Type Annotation"),
+    p("Prediction, viewer and exploration of cell type identity in automatic and manual way."),
+
+  
+    tabBox(title = "", width = 12,
          
          tabPanel("Input", 
                   fluidRow(
                     column(6, 
                            br(),
-                           
-                           # 单选控件（横向排列）
                            radioButtons("form_choice", "Choose one pipeline:",
                                         choices = c("SingleR" = "form_singler", "ScType" = "form_sctype"),
                                         selected = "form_singler",
@@ -453,14 +442,8 @@ tab_annotatecell <- tabItem(
                     ), # left-column end
                     column(6,
                            br(),
-                           
                            h4("提交的表单内容:"),
-                           verbatimTextOutput("annotcell_form_data"),
-                           
-                           # 打印分析过程与结果
-                           h4("Reference Cell Atlas Information:"),
-                           verbatimTextOutput("annotcell_cellref_stats")
-                           
+                           verbatimTextOutput("annotcell_form_data")
                            )
                   )
          ),
@@ -513,8 +496,6 @@ tab_annotatecell <- tabItem(
 )
 
 
-
-
 # ##* ~~~~~~~~~~~~~~~~
 # 
 # tab_infercnv <- tabItem(
@@ -525,7 +506,6 @@ tab_annotatecell <- tabItem(
 #   # plotlyOutput("clusterAnalysisPlot")
 # )
 # 
-
 
 
 ##* ******************************
@@ -544,8 +524,6 @@ tab_ccc <- tabItem(
                   fluidRow(
                     column(6, 
                            br(),
-                           
-                           # 单选控件（横向排列）
                            radioButtons("ccc_form_choice", "Choose one pipeline:",
                                         choices = c("CellChat" = "form_cellchat",
                                                     # "AUCell" = "form_aucell",
@@ -562,14 +540,8 @@ tab_ccc <- tabItem(
                     ), # left-column end
                     column(6,
                            br(),
-                           
                            h4("提交的表单内容:"),
-                           verbatimTextOutput("ccc_form_data"),
-                           
-                           # 打印分析过程与结果
-                           h4("统计分析结果:"),
-                           verbatimTextOutput("ccc_form_submit_result")
-                           
+                           verbatimTextOutput("ccc_form_data")
                     )
                   )
          ),
@@ -624,8 +596,6 @@ tab_ccc <- tabItem(
   )
 
 
-
-
 ##* ~~~~~~~~~~~~~~~~
 
 tab_trajectory <- tabItem(
@@ -640,8 +610,6 @@ tab_trajectory <- tabItem(
                   fluidRow(
                     column(6, 
                            br(),
-                           
-                           # 单选控件（横向排列）
                            radioButtons("trajectory_form_choice", "Choose one pipeline:",
                                         choices = c("Monocle" = "form_monocle",
                                                     # "AUCell" = "form_aucell",
@@ -671,20 +639,22 @@ tab_trajectory <- tabItem(
                     column(6,
                            br(),
                            h4("Constructing single cell trajectories"),
-                           plotOutput("trajectory_vis_clustering"),
+                           plotOutput("trajectory_vis_clustering1")
                            
-                           h4("Mapping pseudotime onto Seurat clustering"),
-                           plotOutput("trajectory_vis_pseudotime_in_seuratobject"),
                     ), # end of column 1
                     column(6,
                            br(),
-                           
-                           h4("Differential genes along pseudotime"),
-                           textInput("trajectory_viewer_gene", label = "", value = "", placeholder = "Input Gene Symbol..."), 
-                           plotOutput("trajectory_vis_clustering_selectgene"),
-                           plotOutput("trajectory_vis_clustering_selectgene_boxplot")
+                           h4("Mapping pseudotime onto Seurat clustering"),
+                           plotOutput("trajectory_vis_clustering2")
                     ) # end of column 2
-                  )
+                  ), # end of fluidRow
+                  fluidRow(
+                    column(12, 
+                           br(),
+                           h4("Differential genes along pseudotime"),
+                           dataTableOutput("trajectory_table_diffgenes")
+                    )
+                  ) # end of fluidRow 2
                   
          )
          
@@ -705,8 +675,6 @@ tab_trajectory <- tabItem(
 )
 
 
-
-
 # ##* ~~~~~~~~~~~~~~~~
 # 
 # tab_predGRN <- tabItem(
@@ -717,7 +685,6 @@ tab_trajectory <- tabItem(
 #   # plotlyOutput("clusterAnalysisPlot")
 #   
 # )
-
 
 
 ##* ~~~~~~~~~~~~~~~~
@@ -734,7 +701,6 @@ tab_userguide <- tabItem(
   ),
   p("For further details, please refer to the documentation.")
 )
-
 
 
 ##* ~~~~~~~~~~~~~~~~
